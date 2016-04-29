@@ -86,7 +86,7 @@ Once the server has been provisioned, the configured outputs will be displayed. 
 | chefServerUrl  | The concatenated URL for the server which includes the organization name                                                |
 | starterKitPage | URL to the page on the server where the validation keys can be downloaded                                               |
 
-![ARM Template Outputs](/images/outputs.png)
+![ARM Template Outputs](/arm-chef-server/images/outputs.png)
 
 Use the `startKitPage` URL to regenerate the organization keys by clicking on 'Download Starter Kit' on the page.
 
