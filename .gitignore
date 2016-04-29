@@ -1,0 +1,3 @@
+*.orig
+.chef
+.DS_Store
