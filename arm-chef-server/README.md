@@ -25,7 +25,7 @@ Any of the parameters that have a default value do not appear in the `chefserver
 
 The organization name will be converted to lowercase when passed to the configuration script as this is a requirement of the chef server.  Ensure that the organization name does not contain spaces.
 
-The `customScriptURL` is set to 'https://raw.githubusercontent.com/chef-partners/arm-chef-server/master/scripts/setup-chefserver.sh' by default which is the script in this repo `scripts\setup-chefserver.sh`.
+The `customScriptURL` is set to 'https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-chef-server/scripts/setup-chefserver.sh' by default which is the script in this repo `scripts\setup-chefserver.sh`.
 
 ## Run the template into Azure
 
