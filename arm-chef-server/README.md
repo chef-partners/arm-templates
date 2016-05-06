@@ -1,6 +1,6 @@
 # Creating a Chef Server using an ARM template
 
-This template will create a Chef server in the specified resource group.  The script will ensure that the FDQN of the machine is set correctly and will reconfigure the Chef server.  After that it is necessary to configure the server using the web interface which will be at https://<FQDN>/signup.
+This template will create a Chef server in the specified resource group.  The script will ensure that the FDQN of the machine is set correctly and will reconfigure the Chef server.  After that it is necessary to configure the server using the web interface which will be at https://&lt;FQDN&gt;/signup.
 
 ## Parameters
 
