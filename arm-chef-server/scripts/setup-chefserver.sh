@@ -10,6 +10,9 @@
 # Marketplace config file
 MARKETPLACE_FILE="/etc/chef-marketplace/marketplace.rb"
 
+# Analytics configuration file
+ANALYTICS_FILE="/etc/opscode-analytics/opscode-analytics.rb"
+
 # Marketplace command
 MARKETPLACE_CMD="/usr/bin/chef-marketplace-ctl"
 
@@ -19,26 +22,14 @@ LOG_DIR="/var/log/chef-server-bootstrap"
 # FUNCTIONS ---------------------------
 
 show_help() {
-  #echo "Usage: $0 [-h] -F -u -p -f -l -e -o"
-  #echo ""
-  #echo "Configures the chef-server on an Azure Marketplace image"
-  #echo ""
-  #echo "Arguments:"
-  #echo "    -F (--fqdn)    - The external DNS name of the server"
 
   read -d '' help <<"BLOCK"
-Usage: $0 [-h] -F -u -p -f -l -e -o
+Usage: $0 [-h] -F
 
 Configures the chef-server on an Azure Marketplace image
 
 Arguments:
     -F (--fqdn)         - The external DNS name of the server
-    -u (--username)     - Admin username for the chef server
-    -p (--password)     - Password for the admin username
-    -f (--firstname)    - First name of the admin account
-    -l (--lastname)     - Last name of the admin account
-    -e (--emailaddress) - Email address for the account
-    -o (--org)          - Organisation for the chef server
 
 Options:
     -h (-? or --help)   - This help message
@@ -47,8 +38,6 @@ BLOCK
 
   echo "$help"
 }
-
-
 
 # -------------------------------------
 
@@ -73,72 +62,6 @@ while :; do
         shift
       else
         printf 'ERROR: "--fqdn" requires a value.\n' >&2
-        exit 1
-      fi
-    ;;
-
-    -u|--username)
-      if [ -n "$2" ]
-      then
-        USERNAME="$2"
-        shift
-      else
-        printf 'ERROR: "--username" requires a value.\n' >&2
-        exit 1
-      fi
-    ;;
-
-    -p|--password)
-      if [ -n "$2" ]
-      then
-        PASSWORD="$2"
-        shift
-      else
-        printf 'ERROR: "--password" requires a value.\n' >&2
-        exit 1
-      fi
-    ;;
-
-    -f|--firstname)
-      if [ -n "$2" ]
-      then
-        FIRSTNAME="$2"
-        shift
-      else
-        printf 'ERROR: "--firstname" requires a value.\n' >&2
-        exit 1
-      fi
-    ;;
-
-    -l|--lastname)
-      if [ -n "$2" ]
-      then
-        LASTNAME="$2"
-        shift
-      else
-        printf 'ERROR: "--lastname" requires a value.\n' >&2
-        exit 1
-      fi
-    ;;
-
-    -e|--emailaddress)
-      if [ -n "$2" ]
-      then
-        EMAILADDRESS="$2"
-        shift
-      else
-        printf 'ERROR: "--emailaddress" requires a value.\n' >&2
-        exit 1
-      fi
-    ;;
-
-    -o|--organisation|--org|--organization)
-      if [ -n "$2" ]
-      then
-        ORG="$2"
-        shift
-      else
-        printf 'ERROR: "--org" requires a value.\n' >&2
         exit 1
       fi
     ;;
@@ -188,6 +111,7 @@ $CMD >> $LOG_DIR/ubuntu.log 2>&1
 
 # Set the FQDN in the marketplace configuration file
 echo "Setting the FQDN"
+echo "   API"
 api_fqdn=$(printf 'api_fqdn "%s"' "${FQDN}")
 
 # Determine that the marketplace file exists
@@ -199,15 +123,21 @@ else
   exit 2
 fi
 
+echo "   Analytics"
+analytics_fqdn=$(printf 'analytics_fqdn "%s"' "${FQDN}")
+
+if [ -f $ANALYTICS_FILE ]
+then
+  echo $analytics_fqdn >> $ANALYTICS_FILE
+else
+  echo "Analytics file does not exist: ${ANALYTICS_FILE}"
+  exit 2
+fi
+
 # Define the logfile
 LOGFILE=$(printf "%s/setup.log" $LOG_DIR)
 
 # Set the FQDN using the chef-marketplace-ctl command
-CMD="${MARKETPLACE_CMD} hostname $FQDN > $LOGFILE"
+CMD="${MARKETPLACE_CMD} hostname $FQDN"
 echo $CMD >> $CMD_LOG
-$CMD
-
-# Build up the command to configure the server
-CMD=$(printf '%s setup -y --eula -u %s -p %s -f %s -l %s -e %s -o %s >> %s' $MARKETPLACE_CMD $USERNAME $PASSWORD $FIRSTNAME $LASTNAME $EMAILADDRESS $ORG $LOGFILE)
-echo $CMD >> $CMD_LOG
-$CMD
+$CMD >> $LOG_DIR/setup.log 2>&1

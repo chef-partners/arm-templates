@@ -10,15 +10,6 @@
     },
     "dnsLabelPrefix": {
       "value": "chef-svr-01"
-    },
-    "chefAdminPassword": {
-      "value": ""
-    },
-    "chefAdminEmail": {
-      "value": ""
-    },
-    "chefOrganization": {
-      "value": "AzureOrg"
     }
   }
 }

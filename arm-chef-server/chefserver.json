@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
+  "contentVersion": "1.0.0.2",
   "parameters": {
     "vmName": {
       "type": "string",
@@ -43,74 +43,90 @@
         "azure_marketplace_250"
       ]
     },
-    "chefAdminUser": {
-      "type": "string",
-      "defaultValue": "admin",
-      "metadata": {
-        "description": "Admin user to create when setting up the Chef server"
-      }
-    },
-    "chefAdminPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Password to be set for the Chef Admin user"
-      }
-    },
-    "chefAdminFirstname": {
-      "type": "string",
-      "defaultValue": "Admin",
-      "metadata": {
-        "description": "First name of the admin user"
-      }
-    },
-    "chefAdminLastname": {
-      "type": "string",
-      "defaultValue": "Account",
-      "metadata": {
-        "description": "Last name of the admin user"
-      }
-    },
-    "chefAdminEmail": {
-      "type": "string",
-      "metadata": {
-        "description": "Email address of the admmin user"
-      }
-    },
-    "chefOrganization": {
-      "type": "string",
-      "metadata": {
-        "description": "Organization to create on the chef server"
-      }
-    },
     "customScriptURL": {
       "type": "string",
       "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-chef-server/scripts/setup-chefserver.sh",
       "metadata": {
         "description": "URL to the the setup script"
       }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D1",
+      "metadata": {
+        "description": "Size of the virtual machine to create"
+      }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "defaultValue": "chefNetwork",
+      "metadata": {
+        "description": "Name of the virtual network"
+      }
+    },
+    "addressPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/24",
+      "metadata": {
+        "description": "Virtual network address prefix"
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "defaultValue": "chefSubnet",
+      "metadata": {
+        "description": "Name of the subnet created in the virtual network"
+      }
+    },
+    "subnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/28",
+      "metadata": {
+        "description": "Size of the subnet to create witin the virtual network"
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "defaultValue": "[uniquestring(parameters('vmName'))]",
+      "metadata": {
+        "description": "Name of the storage account to use"
+      }
+    },
+    "storageAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "metadata": {
+        "description": "The type of storage account to use"
+      }
+    },
+    "storageAccountContainerName": {
+      "type": "string",
+      "defaultValue": "vhds",
+      "metadata": {
+        "description": "Name of the container in the storage account that the hard disks are going to be stored in"
+      }
     }
   },
   "variables": {
-    "storageAccountName": "[uniquestring(parameters('vmName'))]",
+    "storageAccountName": "[parameters('storageAccountName')]",
     "location": "[resourceGroup().location]",
-    "dataDisk1VhdName": "datadisk1",
+    "dataDisk1VhdName": "chefServerDataDisk1",
     "imagePublisher": "chef-software",
     "imageOffer": "chef-server",
-    "OSDiskName": "chefserverdisk",
-    "nicName": "myVMNic",
-    "addressPrefix": "10.0.0.0/16",
-    "subnetName": "Subnet",
-    "subnetPrefix": "10.0.0.0/24",
-    "storageAccountType": "Standard_LRS",
-    "publicIPAddressName": "myPublicIP",
+    "OSDiskName": "chefServerOSDisk",
+    "nicName": "chefServerNic",
+    "addressPrefix": "[parameters('addressPrefix')]",
+    "subnetName": "[parameters('subnetName')]",
+    "subnetPrefix": "[parameters('subnetPrefix')]",
+    "storageAccountType": "[parameters('storageAccountType')]",
+    "publicIPAddressName": "chefServerPublcIP",
     "publicIPAddressType": "Dynamic",
-    "vmStorageAccountContainerName": "vhds",
-    "vmSize": "Standard_D1",
-    "virtualNetworkName": "MyVNET",
+    "vmStorageAccountContainerName": "[parameters('storageAccountContainerName')]",
+    "vmSize": "[parameters('vmSize')]",
+    "virtualNetworkName": "[parameters('virtualNetworkName')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-    "apiVersion": "2015-06-15",
-    "chef_org_name": "[tolower(parameters('chefOrganization'))]"
+    "apiVersion": "2015-06-15"
   },
   "resources": [
     {
@@ -263,7 +279,7 @@
           "fileUris": [
             "[parameters('customScriptURL')]"
           ],
-          "commandToExecute": "[concat('/bin/bash setup-chefserver.sh -F ', parameters('dnsLabelPrefix'), '.', variables('location'), '.cloudapp.azure.com -u ', parameters('chefAdminUser'), ' -p ', parameters('chefAdminPassword'), ' -f ', parameters('chefAdminFirstname'), ' -l ', parameters('chefAdminLastname'), ' -e ', parameters('chefAdminEmail'), ' -o ', variables('chef_org_name'))]"
+          "commandToExecute": "[concat('/bin/bash setup-chefserver.sh -F ', reference(variables('publicIPAddressName')).dnsSettings.fqdn)]"
         }
       }
     }
@@ -271,19 +287,15 @@
   "outputs": {
     "fqdn": {
       "type": "string",
-      "value": "[reference(variables('publicIPAddressName')).dnsSettings.fqdn)]"
+      "value": "[reference(variables('publicIPAddressName')).dnsSettings.fqdn]"
     },
     "sshCommand": {
       "type": "string",
-      "value": "[concat('ssh ', parameters('adminUsername'), '@', reference(variables('publicIPAddressName')).dnsSettings.fqdn))]"
+      "value": "[concat('ssh ', parameters('adminUsername'), '@', reference(variables('publicIPAddressName')).dnsSettings.fqdn)]"
     },
-    "chefServerUrl": {
+    "chefServerSignUpURL": {
       "type": "string",
-      "value": "[concat('https://', reference(variables('publicIPAddressName')).dnsSettings.fqdn), '/organizations/', toLower(parameters('chefOrganization')))]"
-    },
-    "starterKitPage": {
-      "type": "string",
-      "value": "[concat('https://', reference(variables('publicIPAddressName')).dnsSettings.fqdn), '/organizations/', variables('chef_org_name'), '/getting_started')]"
+      "value": "[concat('https://', reference(variables('publicIPAddressName')).dnsSettings.fqdn, '/signup')]"
     }
   }
 }

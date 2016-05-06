@@ -1,31 +1,36 @@
 # Creating a Chef Server using an ARM template
 
-This template will create a Chef server in the specified resource group.  The software will be installed and configured according to the parameters that have been supplied.  This update means that no manual operations are required to get the Chef server up and running.
+This template will create a Chef server in the specified resource group.  The script will ensure that the FDQN of the machine is set correctly and will reconfigure the Chef server.  After that it is necessary to configure the server using the web interface which will be at https://<FQDN>/signup.
 
 ## Parameters
 
 The following table describes what each parameter is used for and any that have default values.
 
-| Name               | Description                                                                                                           | Default Value     | Example     |
-|:-------------------|:----------------------------------------------------------------------------------------------------------------------|:------------------|:------------|
-| vmName             | Name of the virtual machine                                                                                           |                   | chef-svr-01 |
-| adminUsername      | SSH username for the server                                                                                           | azure             |             |
-| adminPassword      | Password for the admin user                                                                                           |                   |             |
-| dnsLabelPrefix     | Name that will be assigned to the DNS to make an FQDN for the machine. Typically this would be the same as the vmName |                   | chef-svr-01 |
-| chefServerSKU      | Name of the Chef Server SKU to use.                                                                                   | chefbyol          |             |
-| chefAdminUser      | Username of the account to create on the chef server                                                                  | admin             |             |
-| chefAdminPassword  | Password to be associated with the admin user                                                                         |                   |             |
-| chefAdminFirstname | Firstname of the admin account user                                                                                   | Admin             |             |
-| chefAdminLastname  | Lastname of the admin account user                                                                                    | Account           |             |
-| chefAdminEmail     | Email address for the admin account                                                                                   |                   |             |
-| chefOrganization   | Name of the first organization to create on the chef server                                                           |                   | AzureOrg    |
-| customScriptURL    | The Public URL from which the script to setup the server can be downloaded from.                                      | &lt;SEE BELOW&gt; |             |
+| Name            | Description                                                                                                           | Default Value     | Example     |
+|:----------------|:----------------------------------------------------------------------------------------------------------------------|:------------------|:------------|
+| vmName          | Name of the virtual machine                                                                                           |                   | chef-svr-01 |
+| adminUsername   | SSH username for the server                                                                                           | azure             |             |
+| adminPassword   | Password for the admin user                                                                                           |                   |             |
+| dnsLabelPrefix  | Name that will be assigned to the DNS to make an FQDN for the machine. Typically this would be the same as the vmName |                   | chef-svr-01 |
+| chefServerSKU   | Name of the Chef Server SKU to use.                                                                                   | chefbyol          |             |
+| customScriptURL | The Public URL from which the script to setup the server can be downloaded from.                                      | &lt;SEE BELOW&gt; |             |
 
 Any of the parameters that have a default value do not appear in the `chefserver.parameters.json` file.  However to override the values add them to this file as required.
 
-The organization name will be converted to lowercase when passed to the configuration script as this is a requirement of the chef server.  Ensure that the organization name does not contain spaces.
-
 The `customScriptURL` is set to 'https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-chef-server/scripts/setup-chefserver.sh' by default which is the script in this repo `scripts\setup-chefserver.sh`.
+
+The template has been updated so that it can be used as a shared template in other ARM templates.  This makes it much easier to reuse the template without having to define it each time in other more complex templates.  The following parameters can be set and are intended to be specified when the template is part of a larger one.
+
+| Name                        | Description                                                  | Default Value     |
+|:----------------------------|:-------------------------------------------------------------|:------------------|
+| vmSize                      | Size of VM to build within Azure                             | Standard_D1       |
+| virtualNetworkName          | Name of the virtual network to create in the resource group  | chefNetwork       |
+| addressPrefix               | Network range of the virtual network                         | 10.0.0.0/24       |
+| subnetName                  | Name of the subnet to create within the virtual network      | chefSubnet        |
+| subnetPrefix                | Address range for the new subnet                             | 10.0.0.0/28       |
+| storageAccountName          | Name of the storage account to create                        | &lt;SEE BELOW&gt; |
+| storageAccountType          | Type of storage account to use                               | Standard_LRS      |
+| storageAccountContainerName | Name of the container in which the hard disks will be stored | vhds              |
 
 ## Run the template into Azure
 
@@ -79,15 +84,16 @@ C:\> New-AzureRmResoureGroupDeployment -ResourceGroupName "<NAME_OF_RESOURCE_GRO
 
 Once the server has been provisioned, the configured outputs will be displayed.  These outputs are as shown below:
 
-| Name           | Description                                                                                                             |
-|:---------------|:------------------------------------------------------------------------------------------------------------------------|
-| fqdn           | The fully qualified domain name of the server.  This will be of the form <dnsLabelPrefix>.<location>.cloudapp.azure.com |
-| sshCommand     | The ssh command required to login to the server with the correct user                                                   |
-| chefServerUrl  | The concatenated URL for the server which includes the organization name                                                |
-| starterKitPage | URL to the page on the server where the validation keys can be downloaded                                               |
+| Name                | Description                                                                                                             |
+|:--------------------|:------------------------------------------------------------------------------------------------------------------------|
+| fqdn                | The fully qualified domain name of the server.  This will be of the form <dnsLabelPrefix>.<location>.cloudapp.azure.com |
+| sshCommand          | The ssh command required to login to the server with the correct user                                                   |
+| chefServerSignUpURL | The URL that is to be used to signup and verify that the server is being configured                                     |
 
 ![ARM Template Outputs](/arm-chef-server/images/outputs.png)
 
-Use the `startKitPage` URL to regenerate the organization keys by clicking on 'Download Starter Kit' on the page.
+Once the server has built go to the url as specified in the `chefServerSignUpUrl` and enter the name of the virtual machine into the form.  This is so that there the system can be sure that it is being configured by the same person that built it.  After signup the system will redirect to the login page where a new account can be created.
 
 For more information about using the Azure Marketplace chef server please refer to https://docs.chef.io/azure_portal.html.
+
+Note:  After the configuration it maybe necessary to restart the chef server using `chef-server-ctl restart`
