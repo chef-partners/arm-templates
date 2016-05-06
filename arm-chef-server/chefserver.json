@@ -119,13 +119,17 @@
     "subnetName": "[parameters('subnetName')]",
     "subnetPrefix": "[parameters('subnetPrefix')]",
     "storageAccountType": "[parameters('storageAccountType')]",
-    "publicIPAddressName": "chefServerPublcIP",
+    "publicIPAddressName": "chefServerPublicIP",
     "publicIPAddressType": "Dynamic",
     "vmStorageAccountContainerName": "[parameters('storageAccountContainerName')]",
     "vmSize": "[parameters('vmSize')]",
     "virtualNetworkName": "[parameters('virtualNetworkName')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+
+    "cloudHead": "#cloud-config\nmanage_etc_hosts: true\n\npackage_update: true\npackage_upgrade: false\n",
+
+
     "apiVersion": "2015-06-15"
   },
   "resources": [
@@ -152,6 +156,7 @@
     },
     {
       "apiVersion": "[variables('apiVersion')]",
+
       "type": "Microsoft.Network/virtualNetworks",
       "name": "[variables('virtualNetworkName')]",
       "location": "[variables('location')]",
@@ -218,7 +223,8 @@
         "osProfile": {
           "computerName": "[parameters('vmName')]",
           "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "adminPassword": "[parameters('adminPassword')]",
+          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\n' ))]"
         },
         "storageProfile": {
           "imageReference": {
@@ -259,27 +265,6 @@
             "enabled": "true",
             "storageUri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net')]"
           }
-        }
-      }
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmName'), '/ConfigureChefServer')]",
-      "apiVersion": "[variables('apiVersion')]",
-      "location": "[variables('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'))]"
-      ],
-      "properties": {
-        "publisher": "Microsoft.OSTCExtensions",
-        "type": "CustomScriptForLinux",
-        "typeHandlerVersion": "1.5",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "fileUris": [
-            "[parameters('customScriptURL')]"
-          ],
-          "commandToExecute": "[concat('/bin/bash setup-chefserver.sh -F ', reference(variables('publicIPAddressName')).dnsSettings.fqdn)]"
         }
       }
     }
