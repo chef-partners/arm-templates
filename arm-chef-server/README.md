@@ -1,5 +1,10 @@
 # Creating a Chef Server using an ARM template
 
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fchef-partners%2Farm-templates%2Fmaster%2Farm-chef-server%2Fchefserver.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fchef-partners%2Farm-templates%2Fmaster%2Farm-chef-server%2Fchefserver.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
+
 This template will create a Chef server in the specified resource group.  The script will ensure that the FDQN of the machine is set correctly and will reconfigure the Chef server.  After that it is necessary to configure the server using the web interface which will be at https://&lt;FQDN&gt;/signup.
 
 ## Parameters
