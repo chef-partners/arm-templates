@@ -1,0 +1,68 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualNetworkName": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "virtualNetworkAddressPrefix": {
+      "type": "string"
+    },
+    "Subnet1Name": {
+      "type": "string"
+    },
+    "Subnet1Prefix": {
+      "type": "string"
+    },
+    "Subnet2Name": {
+      "type": "string"
+    },
+    "Subnet2Prefix": {
+      "type": "string"
+    },
+    "vnetExistingRGName" : {
+      "type" : "string"
+    }
+  },
+  "variables": {
+    "vnetID" : "[resourceId(parameters('vnetExistingRGName'),'Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
+    "subnet1" : "[concat(variables('vnetID'),'/subnets/',parameters('Subnet1Name'))]",
+    "subnet2" : "[concat(variables('vnetID'),'/subnets/',parameters('Subnet2Name'))]"
+  },
+  "resources": [
+    {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Network/virtualNetworks/subnets",
+        "name": "[concat(parameters('virtualNetworkName'),'/',parameters('Subnet1Name'))]",
+        "location": "[parameters('location')]",
+        "properties": {
+          "addressPrefix": "[parameters('subnet1Prefix')]"
+        }
+    },
+    {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Network/virtualNetworks/subnets",
+        "name": "[concat(parameters('virtualNetworkName'),'/',parameters('Subnet2Name'))]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/',parameters('virtualNetworkName'),'/subnets/',parameters('Subnet1Name'))]"           
+        ],
+        "properties": {
+          "addressPrefix": "[parameters('subnet2Prefix')]"
+        }
+    }
+  ],
+  "outputs": {
+    "subnet1Ref": {
+      "value": "[variables('subnet1')]",
+      "type": "string"
+    },
+    "subnet2Ref": {
+      "value": "[variables('subnet2')]",
+      "type": "string"
+    }
+  }
+}

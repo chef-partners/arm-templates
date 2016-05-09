@@ -1,0 +1,226 @@
+{
+  "handler": "Microsoft.Compute.MultiVm",
+  "version": "0.0.1-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "Name",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Virtual Machine name",
+        "toolTip": "The name of the Virtual Machine.",
+        "constraints": {
+          "required": true
+        }
+      },
+      {
+        "name": "adminUsername",
+        "type": "Microsoft.Compute.UserNameTextBox",
+        "label": "Username",
+        "toolTip": "Admin username for the virtual machines. The OpsCenter username is 'admin'.",
+        "osPlatform": "Linux"
+      },
+      {
+          "name": "SSHCredentials",
+          "type": "Microsoft.Compute.CredentialsCombo",
+          "label": {
+              "authenticationType": "Authentication type",
+              "password": "Password",
+              "confirmPassword": "Confirm password",
+              "sshPublicKey": "SSH public key"
+          },
+          "toolTip": {
+              "authenticationType": "Authentication Type for the Linux Virtual Machine",
+              "password": "Password for the Virtual Machine",
+              "sshPublicKey": "SSH Public Key for the Virtual Machine"
+          },
+          "constraints": {
+              "required": true
+          },
+          "options": {
+              "hideConfirmation": false
+          },
+          "osPlatform": "Linux"
+      }
+    ],
+    "steps": [
+      {
+        "name": "VirtualMachineConfig",
+        "label": "NVA myappliance settings",
+        "subLabel": {
+          "preValidation": "Configure the myappliance settings",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "NVA myappliance settings",
+        "elements": [
+          {
+            "name": "Size",
+            "type": "Microsoft.Compute.SizeSelector",
+            "label": "Virtual machine size",
+            "toolTip": "The size of virtual machine to provision.",
+            "recommendedSizes": [
+              "Standard_A3",
+              "Standard_A4",
+              "Standard_D4"
+            ],
+            "constraints": {
+              "allowedSizes": [
+                "Standard_A3",
+                "Standard_A4",
+                "Standard_D2",
+                "Standard_D3",
+                "Standard_D4",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2"
+              ],
+              "required": true
+            },
+            "osPlatform": "Linux",
+            "count": "1"
+          },
+          {
+            "name": "storageAccount",
+            "type": "Microsoft.Storage.StorageAccountSelector",
+            "label": "Storage account",
+            "toolTip": "Storage Account for the Virtual Machine's Disks",
+            "defaultValue": {
+              "type": "Standard_LRS"
+            },
+            "constraints": {
+              "allowedTypes": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Premium_LRS"
+              ],
+              "required": true
+            }
+          },
+          {
+            "name": "publicIpAddress",
+            "type": "Microsoft.Network.PublicIpAddressCombo",
+            "label": {
+              "publicIpAddress": "Public IP address",
+              "domainNameLabel": "DNS label"
+            },
+            "toolTip": {
+              "domainNameLabel": "DNS label for the Virtual Machine's public IP address."
+            },
+            "defaultValue": {
+              "publicIpAddressName": ""
+            },
+            "options": {
+              "hideNone": true
+            }
+          },
+          {
+            "name": "virtualNetwork",
+            "type": "Microsoft.Network.VirtualNetworkCombo",
+            "label": {
+                "virtualNetwork": "Virtual network",
+                "subnets": "Subnets"
+            },
+            "toolTip": {
+                "virtualNetwork": "Virtual Network Name",
+                "subnets": "Subnets requied for the NVA myappliance solution"
+            },
+            "defaultValue": {
+                "name": "vnet01",
+                "addressPrefixSize": "/16"
+            },
+            "constraints": {
+                "minAddressPrefixSize": "/16"
+            },
+            "subnets": {
+                "subnet1": {
+                    "label": "External facing subnet",
+                    "constraints": {
+                        "minAddressPrefixSize": "/24",
+                        "minAddressCount": 12,
+                        "requireContiguousAddresses": false
+                    }
+                },
+                "subnet2": {
+                    "label": "Protected subnet",
+                    "constraints": {
+                        "minAddressPrefixSize": "/24",
+                        "minAddressCount": 12,
+                        "requireContiguousAddresses": false
+                    }
+                }
+            }
+        },
+        {
+          "name": "ChefServerSetup",
+          "label": "Chef Server Setup",
+          "subLabel": {
+            "preValidation": "Configure the your Chef Server",
+            "postValidation": "Delightful"
+          },
+          "bladeTitle": "Chef Server Setup",
+          "elements": [
+            {
+              "name": "Chef Server Admin User",
+              "type": "Microsoft.Compute.UserNameTextBox",
+              "label": "Username",
+              "toolTip": "This username will be used for logging into the Chef management console",
+              "osPlatform": "Linux"
+            },
+            {
+              "name": "Chef Server Admin Password",
+              "type": "Microsoft.Common.PasswordBox",
+              "label": {
+                  "password": "Password",
+                  "confirmPassword": "Confirm password"
+              },
+              "toolTip": "This password will be used for logging into the Chef management console",
+              "constraints": {
+                  "required": true,
+                  "regex": "",
+                  "validationMessage": ""
+                },
+              "options": {
+                  "hideConfirmation": false
+              }
+            },
+            {
+              "name": "",
+              "type": ""
+            }
+          ]
+        }
+        ]
+      }
+    ],
+    "outputs": {
+      "vmName": "[basics('Name')]",
+      "adminUsername": "[basics('adminUsername')]",
+      "adminPassword": "[basics('SSHCredentials').password]",
+      "sshPublicKey": "[basics('SSHCredentials').sshPublicKey]",
+      "authenticationType" : "[basics('SSHCredentials').authenticationType]",
+      "vmSize": "[steps('VirtualMachineConfig').Size]",
+      "location": "[location()]",
+      "newStorageAccountName" : "[steps('VirtualMachineConfig').storageAccount.name]",
+      "storageAccountType" : "[steps('VirtualMachineConfig').storageAccount.type]",
+      "storageAccountNewOrExisting" : "[steps('VirtualMachineConfig').storageAccount.newOrExisting]",
+      "storageAccountExistingRG" : "[steps('VirtualMachineConfig').storageAccount.resourceGroup]",
+      "publicIPAddressName" : "[steps('VirtualMachineConfig').publicIpAddress.name]",
+      "publicIPDnsName" : "[steps('VirtualMachineConfig').publicIpAddress.domainNameLabel]",
+      "publicIPNewOrExisting" : "[steps('VirtualMachineConfig').publicIpAddress.newOrExistingOrNone]",
+      "publicIPExistingRGName" : "[steps('VirtualMachineConfig').publicIpAddress.resourceGroup]",
+      "virtualNetworkName" : "[steps('VirtualMachineConfig').virtualNetwork.name]",
+      "virtualNetworkAddressPrefix" : "[steps('VirtualMachineConfig').virtualNetwork.addressPrefix]",
+      "Subnet1Name" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet1.name]",
+      "Subnet1Prefix" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet1.addressPrefix]",
+      "Subnet2Name" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet2.name]",
+      "Subnet2Prefix" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet2.addressPrefix]",
+      "vnetNewOrExisting" : "[steps('VirtualMachineConfig').virtualNetwork.newOrExisting]",
+      "virtualNetworkExistingRGName" : "[steps('VirtualMachineConfig').virtualNetwork.resourceGroup]",
+      "subnet1StartAddress" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet1.startAddress]",
+      "subnet2StartAddress" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet2.startAddress]",
+      "chefLicenses" : "[steps('Chef]",
+      "chefServerUser" : "[]",
+      "chefServerPassword" : "[]",
+      "chefOrganization" : "[]"
+    }
+  }
+}
