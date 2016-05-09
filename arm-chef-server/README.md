@@ -5,24 +5,21 @@
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
-This template will create a Chef server in the specified resource group.  The script will ensure that the FDQN of the machine is set correctly and will reconfigure the Chef server.  After that it is necessary to configure the server using the web interface which will be at https://&lt;FQDN&gt;/signup.
+This template will create a Chef server in the specified resource group.  Cloud init is configured to set the FQDN of the machine for the Chef server using data that is passed in via the template.  This means that unlike previous versions of this repo a Custom script is not longer required.
 
 ## Parameters
 
 The following table describes what each parameter is used for and any that have default values.
 
-| Name            | Description                                                                                                           | Default Value     | Example     |
-|:----------------|:----------------------------------------------------------------------------------------------------------------------|:------------------|:------------|
-| vmName          | Name of the virtual machine                                                                                           |                   | chef-svr-01 |
-| adminUsername   | SSH username for the server                                                                                           | azure             |             |
-| adminPassword   | Password for the admin user                                                                                           |                   |             |
-| dnsLabelPrefix  | Name that will be assigned to the DNS to make an FQDN for the machine. Typically this would be the same as the vmName |                   | chef-svr-01 |
-| chefServerSKU   | Name of the Chef Server SKU to use.                                                                                   | chefbyol          |             |
-| customScriptURL | The Public URL from which the script to setup the server can be downloaded from.                                      | &lt;SEE BELOW&gt; |             |
+| Name           | Description                                                                                                           | Default Value | Example     |
+|:---------------|:----------------------------------------------------------------------------------------------------------------------|:--------------|:------------|
+| vmName         | Name of the virtual machine                                                                                           |               | chef-svr-01 |
+| adminUsername  | SSH username for the server                                                                                           | azure         |             |
+| adminPassword  | Password for the admin user                                                                                           |               |             |
+| dnsLabelPrefix | Name that will be assigned to the DNS to make an FQDN for the machine. Typically this would be the same as the vmName |               | chef-svr-01 |
+| chefServerSKU  | Name of the Chef Server SKU to use.                                                                                   | chefbyol      |             |
 
 Any of the parameters that have a default value do not appear in the `chefserver.parameters.json` file.  However to override the values add them to this file as required.
-
-The `customScriptURL` is set to 'https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-chef-server/scripts/setup-chefserver.sh' by default which is the script in this repo `scripts\setup-chefserver.sh`.
 
 The template has been updated so that it can be used as a shared template in other ARM templates.  This makes it much easier to reuse the template without having to define it each time in other more complex templates.  The following parameters can be set and are intended to be specified when the template is part of a larger one.
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.2",
+  "contentVersion": "1.0.0.3",
   "parameters": {
     "vmName": {
       "type": "string",
@@ -42,13 +42,6 @@
         "azure_marketplace_200",
         "azure_marketplace_250"
       ]
-    },
-    "customScriptURL": {
-      "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/jc/configure/arm-chef-server/scripts/setup-chefserver.sh",
-      "metadata": {
-        "description": "URL to the the setup script"
-      }
     },
     "vmSize": {
       "type": "string",
