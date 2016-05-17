@@ -33,8 +33,10 @@ The template has been updated so that it can be used as a shared template in oth
 | storageAccountName          | Name of the storage account to create                        | &lt;SEE BELOW&gt; |
 | storageAccountType          | Type of storage account to use                               | Standard_LRS      |
 | storageAccountContainerName | Name of the container in which the hard disks will be stored | vhds              |
+| storageAccountMode          | Whether the stoarge account should be created or exists      | new               |
+| virtualNetworksMode         | Whether the virtual network should be created or not         | new               |
+| baseUrl                     | Base URL for the templates for the chef server               |                   |
 
-**NOTE: In order to use this template as a shared template it will need to be forked or cloned and edited so that the `virtualNetwork` and `storageAccount` are not created as they will already exist and it will cause a deployment failure.**
 
 ## Run the template into Azure
 

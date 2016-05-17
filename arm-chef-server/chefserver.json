@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.3",
+  "contentVersion": "1.0.0.4",
   "parameters": {
     "vmName": {
       "type": "string",
@@ -98,6 +98,36 @@
       "metadata": {
         "description": "Name of the container in the storage account that the hard disks are going to be stored in"
       }
+    },
+    "storageAccountMode": {
+      "type": "string",
+      "defaultValue": "new",
+      "metadata": {
+        "description": "States whether a storage account should be created or not.  Default: new"
+      },
+      "allowedValues": [
+        "new",
+        "exists"
+      ]
+    },
+    "virtualNetworkMode": {
+      "type": "string",
+      "defaultValue": "new",
+      "metadata": {
+        "description": "States whether a virtual network should be created or not.  Default: new"
+      },
+      "allowedValues": [
+        "new",
+        "exists"
+      ]
+    },
+
+    "baseUrl": {
+      "type": "string",
+      "metadata": {
+        "string": "Base URL for all components that need to be included"
+      },
+      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-chef-server"
     }
   },
   "variables": {
@@ -108,7 +138,7 @@
     "imageOffer": "chef-server",
     "OSDiskName": "chefServerOSDisk",
     "nicName": "chefServerNic",
-    "addressPrefix": "[parameters('addressPrefix')]",
+    "vnetAddressPrefix": "[parameters('addressPrefix')]",
     "subnetName": "[parameters('subnetName')]",
     "subnetPrefix": "[parameters('subnetPrefix')]",
     "storageAccountType": "[parameters('storageAccountType')]",
@@ -122,19 +152,39 @@
 
     "cloudHead": "#cloud-config\nmanage_etc_hosts: true\n\npackage_update: true\npackage_upgrade: false\n",
 
+    "apiVersion": "2015-06-15",
 
-    "apiVersion": "2015-06-15"
+    "templateURLs": {
+      "storageAccount": "[concat(parameters('baseUrl'), '/templates/storageaccount_', parameters('storageAccountMode'), '.json')]",
+      "vnet": "[concat(parameters('baseUrl'), '/templates/vnet_', parameters('virtualNetworkMode'), '.json')]"
+    }
   },
   "resources": [
+
     {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('storageAccountName')]",
-      "apiVersion": "[variables('apiVersion')]",
-      "location": "[variables('location')]",
+      "type": "Microsoft.Resources/deployments",
+      "name": "StorageAccountSetup",
+      "apiVersion": "2016-02-01",
       "properties": {
-        "accountType": "[variables('storageAccountType')]"
+          "mode": "Incremental",
+          "templateLink": {
+            "uri": "[variables('templateURLs').storageAccount]",
+            "contentVersion": "1.0.0.0"
+          },
+          "parameters": {
+            "location": {
+              "value": "[variables('location')]"
+            },
+            "storageAccountType": {
+              "value": "[variables('storageAccountType')]"
+            },
+            "storageAccountName": {
+              "value": "[variables('storageAccountName')]"
+            }
+          }
       }
     },
+
     {
       "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/publicIPAddresses",
@@ -147,28 +197,37 @@
         }
       }
     },
-    {
-      "apiVersion": "[variables('apiVersion')]",
 
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('virtualNetworkName')]",
-      "location": "[variables('location')]",
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "VirtualNetworkSetup",
+      "apiVersion": "2016-02-01",
       "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('addressPrefix')]"
-          ]
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateURLs').vnet]",
+          "contentVersion": "1.0.0.0"
         },
-        "subnets": [
-          {
-            "name": "[variables('subnetName')]",
-            "properties": {
-              "addressPrefix": "[variables('subnetPrefix')]"
-            }
+        "parameters": {
+          "virtualNetworkName": {
+            "value": "[variables('virtualNetworkName')]"
+          },
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "vnetAddressPrefix": {
+            "value": "[variables('vnetAddressPrefix')]"
+          },
+          "subnetName": {
+            "value": "[variables('subnetName')]"
+          },
+          "subnetPrefix": {
+            "value": "[variables('subnetPrefix')]"
           }
-        ]
+        }
       }
     },
+
     {
       "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/networkInterfaces",
@@ -176,7 +235,7 @@
       "location": "[variables('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+        "Microsoft.Resources/deployments/VirtualNetworkSetup"
       ],
       "properties": {
         "ipConfigurations": [
@@ -188,7 +247,7 @@
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
               },
               "subnet": {
-                "id": "[variables('subnetRef')]"
+                "id": "[reference('VirtualNetworkSetup').outputs.subnetRef.value]"
               }
             }
           }
@@ -201,7 +260,7 @@
       "name": "[parameters('vmName')]",
       "location": "[variables('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "Microsoft.Resources/deployments/StorageAccountSetup",
         "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
       ],
       "plan": {
