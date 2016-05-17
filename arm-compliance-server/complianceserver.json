@@ -1,0 +1,338 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.1",
+  "parameters": {
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the virtual machine"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "azure",
+      "metadata": {
+        "description": "User name for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    },
+    "dnsLabelPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
+      }
+    },
+    "complianceServerSKU": {
+      "defaultValue": "azure_marketplace_5",
+      "type": "string",
+      "metadata": {
+        "description": "The AMP image to use to create the Chef Compliance server"
+      },
+      "allowedValues": [
+        "azure_marketplace_5",
+        "azure_marketplace_25",
+        "azure_marketplace_50",
+        "azure_marketplace_100",
+        "azure_marketplace_150",
+        "azure_marketplace_200",
+        "azure_marketplace_250"
+      ]
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D1",
+      "metadata": {
+        "description": "Size of the virtual machine to create"
+      }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "defaultValue": "chefNetwork",
+      "metadata": {
+        "description": "Name of the virtual network"
+      }
+    },
+    "addressPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/24",
+      "metadata": {
+        "description": "Virtual network address prefix"
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "defaultValue": "chefSubnet",
+      "metadata": {
+        "description": "Name of the subnet created in the virtual network"
+      }
+    },
+    "subnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/28",
+      "metadata": {
+        "description": "Size of the subnet to create witin the virtual network"
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the storage account to use"
+      },
+      "defaultValue": "[uniquestring(parameters('vmName'))]"
+    },
+    "storageAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "metadata": {
+        "description": "The type of storage account to use"
+      }
+    },
+    "storageAccountContainerName": {
+      "type": "string",
+      "defaultValue": "vhds",
+      "metadata": {
+        "description": "Name of the container in the storage account that the hard disks are going to be stored in"
+      }
+    },
+    "storageAccountMode": {
+      "type": "string",
+      "defaultValue": "new",
+      "metadata": {
+        "description": "States whether a storage account should be created or not.  Default: new"
+      },
+      "allowedValues": [
+        "new",
+        "exists"
+      ]
+    },
+    "virtualNetworkMode": {
+      "type": "string",
+      "defaultValue": "new",
+      "metadata": {
+        "description": "States whether a virtual network should be created or not.  Default: new"
+      },
+      "allowedValues": [
+        "new",
+        "exists"
+      ]
+    },
+
+    "baseUrl": {
+      "type": "string",
+      "metadata": {
+        "string": "Base URL for all components that need to be included"
+      },
+      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-compliance-server"
+    }
+  },
+  "variables": {
+    "storageAccountName": "[parameters('storageAccountName')]",
+    "location": "[resourceGroup().location]",
+    "dataDisk1VhdName": "complianceServerDataDisk1",
+    "imagePublisher": "chef-software",
+    "imageOffer": "chef-compliance",
+    "OSDiskName": "complianceServerOSDisk",
+    "nicName": "complianceServerNic",
+    "vnetAddressPrefix": "[parameters('addressPrefix')]",
+    "subnetName": "[parameters('subnetName')]",
+    "subnetPrefix": "[parameters('subnetPrefix')]",
+    "storageAccountType": "[parameters('storageAccountType')]",
+    "publicIPAddressName": "complianceServerPublicIP",
+    "publicIPAddressType": "Dynamic",
+    "vmStorageAccountContainerName": "[parameters('storageAccountContainerName')]",
+    "vmSize": "[parameters('vmSize')]",
+    "virtualNetworkName": "[parameters('virtualNetworkName')]",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+
+    "cloudHead": "#cloud-config\nmanage_etc_hosts: true\n\npackage_update: true\npackage_upgrade: false\n",
+
+    "apiVersion": "2015-06-15",
+
+    "templateURLs": {
+      "storageAccount": "[concat(parameters('baseUrl'), '/templates/storageaccount_', parameters('storageAccountMode'), '.json')]",
+      "vnet": "[concat(parameters('baseUrl'), '/templates/vnet_', parameters('virtualNetworkMode'), '.json')]"
+    }
+  },
+  "resources": [
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "StorageAccountSetup",
+      "apiVersion": "2016-02-01",
+      "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "uri": "[variables('templateURLs').storageAccount]",
+            "contentVersion": "1.0.0.0"
+          },
+          "parameters": {
+            "location": {
+              "value": "[variables('location')]"
+            },
+            "storageAccountType": {
+              "value": "[variables('storageAccountType')]"
+            },
+            "storageAccountName": {
+              "value": "[variables('storageAccountName')]"
+            }
+          }
+      }
+    },
+
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddressName')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('dnsLabelPrefix')]"
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "VirtualNetworkSetup",
+      "apiVersion": "2016-02-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateURLs').vnet]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "virtualNetworkName": {
+            "value": "[variables('virtualNetworkName')]"
+          },
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "vnetAddressPrefix": {
+            "value": "[variables('vnetAddressPrefix')]"
+          },
+          "subnetName": {
+            "value": "[variables('subnetName')]"
+          },
+          "subnetPrefix": {
+            "value": "[variables('subnetPrefix')]"
+          }
+        }
+      }
+    },
+
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
+        "Microsoft.Resources/deployments/VirtualNetworkSetup"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
+              },
+              "subnet": {
+                "id": "[reference('VirtualNetworkSetup').outputs.subnetRef.value]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('vmName')]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/StorageAccountSetup",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+      ],
+      "plan": {
+        "name": "[parameters('complianceServerSku')]",
+        "publisher": "[variables('imagePublisher')]",
+        "product": "[variables('imageOffer')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\n', 'api_fqdn: ',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\n' ))]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('imagePublisher')]",
+            "offer": "[variables('imageOffer')]",
+            "sku": "[parameters('complianceServerSku')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "name": "datadisk1",
+              "diskSizeGB": "100",
+              "lun": 0,
+              "vhd": {
+                "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('dataDisk1VhdName'),'.vhd')]"
+              },
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "fqdn": {
+      "type": "string",
+      "value": "[reference(variables('publicIPAddressName')).dnsSettings.fqdn]"
+    },
+    "sshCommand": {
+      "type": "string",
+      "value": "[concat('ssh ', parameters('adminUsername'), '@', reference(variables('publicIPAddressName')).dnsSettings.fqdn)]"
+    },
+    "complianceServerSetupUrl": {
+      "type": "string",
+      "value": "[concat('https://', reference(variables('publicIPAddressName')).dnsSettings.fqdn, '/#/setup')]"
+    }
+  }
+}
