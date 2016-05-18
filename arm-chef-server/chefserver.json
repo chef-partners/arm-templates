@@ -135,7 +135,7 @@
       "metadata": {
         "description": "Base URL for the Virtual Network ARM templates"
       },
-      "defaultValue": "https://github.com/chef-partners/arm-templates/blob/master/arm-virtual-network"
+      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-virtual-network"
     }
 
 
