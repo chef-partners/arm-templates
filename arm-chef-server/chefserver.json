@@ -110,6 +110,14 @@
         "exists"
       ]
     },
+    "storageAccountTemplateBaseUrl": {
+      "type": "string",
+      "metadata": {
+        "string": "Base URL storage account templates"
+      },
+      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-storage-account"
+    },
+
     "virtualNetworkMode": {
       "type": "string",
       "defaultValue": "new",
@@ -122,13 +130,16 @@
       ]
     },
 
-    "baseUrl": {
+    "virtualNetworkTemplateBaseUrl": {
       "type": "string",
       "metadata": {
-        "string": "Base URL for all components that need to be included"
+        "description": "Base URL for the Virtual Network ARM templates"
       },
-      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-chef-server"
+      "defaultValue": "https://github.com/chef-partners/arm-templates/blob/master/arm-virtual-network"
     }
+
+
+
   },
   "variables": {
     "storageAccountName": "[parameters('storageAccountName')]",
@@ -155,8 +166,8 @@
     "apiVersion": "2015-06-15",
 
     "templateURLs": {
-      "storageAccount": "[concat(parameters('baseUrl'), '/templates/storageaccount_', parameters('storageAccountMode'), '.json')]",
-      "vnet": "[concat(parameters('baseUrl'), '/templates/vnet_', parameters('virtualNetworkMode'), '.json')]"
+      "storageAccount": "[concat(parameters('storageAccountTemplateBaseUrl'), '/storageaccount_', parameters('storageAccountMode'), '.json')]",
+      "vnet": "[concat(parameters('virtualNetworkTemplateBaseUrl'), '/vnet_', parameters('virtualNetworkMode'), '.json')]"
     }
   },
   "resources": [
