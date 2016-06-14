@@ -37,7 +37,7 @@
     "publicIPAddressName": "chefServerPublicIP",
     "publicIPAddressType": "Dynamic",
     "vmStorageAccountContainerName": "vhds",
-    "vmSize": "Standard_D1",
+    "vmSize": "Standard_A5",
     "virtualNetworkName": "chefNetwork",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",

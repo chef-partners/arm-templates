@@ -31,7 +31,7 @@ To make the creation of the Chef Server as easy as possible the following parame
 |:------------------------------|:---------|:-----------|:-----------------------------------------------------------------------------------------|
 | dnsLabelPrefix                | true     |            | based on the vmName                                                                      |
 | chefServerSKU                 |          | true       | chefbyol                                                                                 |
-| vmSize                        |          | true       | Standard_D1                                                                              |
+| vmSize                        |          | true       | Standard_A5                                                                              |
 | virtualNetworkName            |          | true       | chefNetwork                                                                              |
 | addressPrefix                 |          | true       | 10.0.0.0/24                                                                              |
 | subnetName                    |          | true       | chefSubnet                                                                               |
