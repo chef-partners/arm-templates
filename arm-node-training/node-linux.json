@@ -49,7 +49,7 @@
     "vmStorageAccountContainerName": "vhds",
     "vmSize": "Standard_DS1",
     "apiVersion": "2015-06-15",
-    "osVersion": "16.04.1-LTS"
+    "osVersion": "16.04.0-LTS"
   },
   "resources": [
     {
