@@ -22,19 +22,19 @@
     },
     "storageAccountName": {
       "type": "string",
-      "default": {
+      "metadata": {
         "description": "The name of the storage account to use"
       }
     },
     "nicName": {
       "type": "string",
-      "default": {
+      "metadata": {
         "description": "The name of the network interface card that has been created"
       }
     },
     "location": {
       "type": "string",
-      "default": {
+      "metadata": {
         "description": "Azure location for the machine"
       }
     }
