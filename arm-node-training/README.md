@@ -19,17 +19,26 @@ Please ensure that the first part of the training has been completed which creat
 
 The following table shows the parameters that this template expects:
 
-| Parameter         | Description                                                                                     | Default Value | Allowed Values | Example     |
-|:------------------|:------------------------------------------------------------------------------------------------|:--------------|:-----------------------------|
-| vmName            | Name of the virtual machine                                                                     |               | | acme-node-01               |
-| vmPlatform        | The type of machine to create                                                                   |               | `windows` or `linux` | linux |
-| adminUsername     | Name of the administrator account                                                               | azure         | |                            |
-| adminPassword     | Password to be set for the admin user                                                           |               | |                            |
-| chefServerUrl     | Full URL to the chef server                                                                     |               | | **see below**              |
-| chefValidatorName | The name of the validator key                                                                   |               | | acme-validator             |
-| chefValidatorKey  | Base64 encoded string for the validation key                                                    |               | |                            |
-| chefRunlist       | Runlist to be applied to the machine                                                            |               | |                            |
-| sequence          | Helps to create uniquely named resources in the group, required for multiple machine generation | 1             | | 2                          |
+| Parameter         | Description                                                                                     | Default Value | Example        |
+|:------------------|:------------------------------------------------------------------------------------------------|:--------------|:---------------|
+| vmName            | Name of the virtual machine                                                                     |               | acme-node-01   |
+| vmPlatform        | The type of machine to create                                                                   |               | linux          |
+| adminUsername     | Name of the administrator account                                                               | azure         |                |
+| adminPassword     | Password to be set for the admin user                                                           |               |                |
+| chefServerUrl     | Full URL to the chef server                                                                     |               | **see below**  |
+| chefValidatorName | The name of the validator key                                                                   |               | acme-validator |
+| chefValidatorKey  | Base64 encoded string for the validation key                                                    |               |                |
+| chefRunlist       | Runlist to be applied to the machine                                                            |               |                |
+| sequence          | Helps to create uniquely named resources in the group, required for multiple machine generation | 1             | 2              |
+
+#### vmPlatform
+
+The `vmPlatform` parameter accepts one of two options:
+
+ 1. windows
+ 2. linux
+
+When this template is activate using the link above the Azure Portal UI will present this as a dropdown box.
 
 ### Chef Server URL
 
