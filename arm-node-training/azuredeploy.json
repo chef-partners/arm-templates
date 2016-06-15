@@ -1,0 +1,206 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the computer.  This will also be used as the DNS label prefix"
+      }
+    },
+    "vmPlatform": {
+      "type": "string",
+      "metadata": "The platform of the machine to create, e.g. Windows or Linux",
+      "allowedValues": [
+        "windows",
+        "linux"
+      ]
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "User name for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    },
+    "chefServerUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URL for the chef server to register the node with"
+      }
+    },
+    "chefValidatorName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the validation certificate"
+      }
+    },
+    "chefValidatorKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Base64 encoded string of the validation key"
+      }
+    },
+    "chefRunlist": {
+      "type": "string",
+      "metadata": {
+        "description": "Runlist to apply to the machine"
+      }
+    }
+  },
+  "variables": {
+    "storageAccountName": "[uniquestring(subscription().subscriptionId, resourceGroup().id, parameters('vmName'))]",
+    "nicName": "myVMNic",
+    "addressPrefix": "10.0.0.0/16",
+    "subnetName": "chefSubnet",
+    "subnetPrefix": "10.0.0.0/24",
+    "storageAccountType": "Standard_LRS",
+    "publicIPAddressName": "nodePublicIp",
+    "publicIPAddressType": "Dynamic",
+    "templateURLs": {
+      "storageAccount": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-storage-account/storageaccount_new.json",
+      "vnet": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-virtual-network/vnet_new.json",
+      "node": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/node-', parameters('vmPlatform'). '.json')]",
+      "chefextension": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/chefextension-', parameters('vmPlatform'). '.json')]"
+    },
+    "virtualNetworkName": "chefNetwork",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+    "apiVersion": "2015-06-15"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "StorageAccountSetup",
+      "apiVersion": "2016-02-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateURLs').storageAccount]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "storageAccountType": {
+            "value": "[variables('storageAccountType')]"
+          },
+          "storageAccountName": {
+            "value": "[variables('storageAccountName')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddressName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('vmName')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
+              },
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "vmCreate",
+      "apiVersion": "2016-02-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateURLs').node]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "vmName": {
+            "value": "[parameters('vmName')]"
+          },
+          "storageAccountName": {
+            "value": "[variables('storageAccountName')]"
+          },
+          "nicName": {
+            "value": "[variables('nicName')]"
+          },
+          "location": {
+            "value": "[variables('location')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "chefExtension",
+      "apiVersion": "2016-02-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateURLs').node]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[parameters('vmName')]"
+          },
+          "chefServerUrl": {
+            "value": "[parameters('chefServerUrl')]"
+          },
+          "chefValidatorName": {
+            "value": "[parameters('chefValidatorName')]"
+          },
+          "chefValidatorKey": {
+            "value": "[parameters('chefValidatorKey')]"
+          },
+          "chefRunlist": {
+            "value": "[parameters('chefRunlist')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "hostname": {
+      "type": "string",
+      "value": "[reference('cmCreate').outputs.hostname.value]"
+    }
+  }
+}

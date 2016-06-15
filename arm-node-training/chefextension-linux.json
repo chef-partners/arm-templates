@@ -1,0 +1,64 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the computer.  This will also be used as the DNS label prefix"
+      }
+    },
+    "chefServerUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URL for the chef server to register against"
+      }
+    },
+    "chefValidatorName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the validator key"
+      }
+    },
+    "chefRunlist": {
+      "type": "string",
+      "metadata": {
+        "description": "Runlist to apply to the machine"
+      }
+    },
+    "chefValidatorKey": {
+      "type": "string",
+      "metadata": {
+        "description": "The key for the named validator"
+      }
+    }
+  },
+  "resources": [
+    {
+      "name": "[concat(parameters('vmName'),'/ChefExtension')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[parameters('vmName')]"
+      ],
+      "properties": {
+        "publisher": "Chef.Bootstrap.WindowsAzure",
+        "type": "LinuxChefClient",
+        "typeHandlerVersion": "1210.12",
+        "settings": {
+          "validation_key_format": "base64encoded",
+          "bootstrap_options": {
+            "chef_node_name": "[parameters('vmName')]",
+            "chef_server_url": "[parameters('chefServerUrl')]",
+            "validation_client_name": "[parameters('chefValidatorName')]"
+          },
+          "runlist": "[parameters('chefRunlist')]"
+        },
+        "protectedSettings": {
+          "validation_key": "[parameters('chefValidatorKey')]"
+        }
+      }
+    }
+  ]
+}
