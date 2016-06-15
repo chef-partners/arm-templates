@@ -1,3 +1,4 @@
 *.orig
 .chef
 .DS_Store
+*.local.json

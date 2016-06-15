@@ -20,7 +20,8 @@
       "type": "string",
       "metadata": {
         "description": "User name for the Virtual Machine."
-      }
+      },
+      "defaultValue": "azure"
     },
     "adminPassword": {
       "type": "securestring",
@@ -51,27 +52,35 @@
       "metadata": {
         "description": "Runlist to apply to the machine"
       }
+    },
+    "sequence": {
+      "type": "string",
+      "metadata": {
+        "description": "Sequence number to use to uniquely identify components"
+      },
+      "defaultValue": "1"
     }
   },
   "variables": {
     "storageAccountName": "[uniquestring(subscription().subscriptionId, resourceGroup().id, parameters('vmName'))]",
-    "nicName": "myVMNic",
+    "nicName": "[concat('nodeNic', parameters('sequence'))]",
     "addressPrefix": "10.0.0.0/16",
     "subnetName": "chefSubnet",
     "subnetPrefix": "10.0.0.0/24",
     "storageAccountType": "Standard_LRS",
-    "publicIPAddressName": "nodePublicIp",
+    "publicIPAddressName": "[concat('nodePublicIP', parameters('sequence'))]",
     "publicIPAddressType": "Dynamic",
     "templateURLs": {
       "storageAccount": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-storage-account/storageaccount_new.json",
       "vnet": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-virtual-network/vnet_new.json",
-      "node": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/node-', parameters('vmPlatform'). '.json')]",
-      "chefextension": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/chefextension-', parameters('vmPlatform'). '.json')]"
+      "node": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/node-', parameters('vmPlatform'), '.json')]",
+      "chefextension": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/chefextension-', parameters('vmPlatform'), '.json')]"
     },
     "virtualNetworkName": "chefNetwork",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-    "apiVersion": "2015-06-15"
+    "apiVersion": "2015-06-15",
+    "location": "[resourceGroup().location]"
   },
   "resources": [
     {
@@ -115,8 +124,7 @@
       "name": "[variables('nicName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -139,6 +147,10 @@
       "type": "Microsoft.Resources/deployments",
       "name": "vmCreate",
       "apiVersion": "2016-02-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/storageAccountSetup",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -171,10 +183,13 @@
       "type": "Microsoft.Resources/deployments",
       "name": "chefExtension",
       "apiVersion": "2016-02-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/vmCreate"
+      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[variables('templateURLs').node]",
+          "uri": "[variables('templateURLs').chefextension]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -200,7 +215,7 @@
   "outputs": {
     "hostname": {
       "type": "string",
-      "value": "[reference('cmCreate').outputs.hostname.value]"
+      "value": "[reference('vmCreate').outputs.hostname.value]"
     }
   }
 }
