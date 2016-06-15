@@ -19,17 +19,21 @@ Please ensure that the first part of the training has been completed which creat
 
 The following table shows the parameters that this template expects:
 
-| Parameter         | Description                                                                                     | Default Value | Allowed Values | Example                                                   |
-|:------------------|:------------------------------------------------------------------------------------------------|:--------------|:---------------------------------------------------------------------------|
-| vmName            | Name of the virtual machine                                                                     |               | | acme-node-01                                                             |
-| vmPlatform        | The type of machine to create                                                                   |               | `windows` or `linux` | linux                                               |
-| adminUsername     | Name of the administrator account                                                               | azure         | |                                                                          |
-| adminPassword     | Password to be set for the admin user                                                           |               |                                                                            |
-| chefServerUrl     | Full URL to the chef server                                                                     |               | | https://acme-chefserver.westeurope.cloudapp.azure.com/organizations/acme |
-| chefValidatorName | The name of the validator key                                                                   |               | | acme-validator                                                           |
-| chefValidatorKey  | Base64 encoded string for the validation key                                                    |               | |                                                                          |
-| chefRunlist       | Runlist to be applied to the machine                                                            |               | |                                                                          |
-| sequence          | Helps to create uniquely named resources in the group, required for multiple machine generation | 1             | | 2                                                                        |
+| Parameter         | Description                                                                                     | Default Value | Allowed Values | Example     |
+|:------------------|:------------------------------------------------------------------------------------------------|:--------------|:-----------------------------|
+| vmName            | Name of the virtual machine                                                                     |               | | acme-node-01               |
+| vmPlatform        | The type of machine to create                                                                   |               | `windows` or `linux` | linux |
+| adminUsername     | Name of the administrator account                                                               | azure         | |                            |
+| adminPassword     | Password to be set for the admin user                                                           |               | |                            |
+| chefServerUrl     | Full URL to the chef server                                                                     |               | | **see below**              |
+| chefValidatorName | The name of the validator key                                                                   |               | | acme-validator             |
+| chefValidatorKey  | Base64 encoded string for the validation key                                                    |               | |                            |
+| chefRunlist       | Runlist to be applied to the machine                                                            |               | |                            |
+| sequence          | Helps to create uniquely named resources in the group, required for multiple machine generation | 1             | | 2                          |
+
+### Chef Server URL
+
+An eacmple for the chef server url is - https://acme-chefserver.westeurope.cloudapp.azure.com/organizations/acme
 
 ### Chef Validator key
 
