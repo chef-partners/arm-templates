@@ -48,7 +48,8 @@
           "bootstrap_options": {
             "chef_node_name": "[parameters('vmName')]",
             "chef_server_url": "[parameters('chefServerUrl')]",
-            "validation_client_name": "[parameters('chefValidatorName')]"
+            "validation_client_name": "[parameters('chefValidatorName')]",
+            "node_ssl_verify_mode": "none"
           },
           "runlist": "[parameters('chefRunlist')]"
         },
