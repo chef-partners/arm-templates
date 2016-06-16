@@ -16,6 +16,13 @@
         "linux"
       ]
     },
+    "sequence": {
+      "type": "string",
+      "metadata": {
+        "description": "Sequence number to use to uniquely identify components"
+      },
+      "defaultValue": "1"
+    },
     "adminUsername": {
       "type": "string",
       "metadata": {
@@ -52,17 +59,11 @@
       "metadata": {
         "description": "Runlist to apply to the machine"
       }
-    },
-    "sequence": {
-      "type": "string",
-      "metadata": {
-        "description": "Sequence number to use to uniquely identify components"
-      },
-      "defaultValue": "1"
     }
   },
   "variables": {
-    "storageAccountName": "[uniquestring(subscription().subscriptionId, resourceGroup().id, parameters('vmName'))]",
+    "vmName": "[concat(parameters('vmName'), '-', parameters('sequence'))]",
+    "storageAccountName": "[uniquestring(subscription().subscriptionId, resourceGroup().id, variables('vmName'))]",
     "nicName": "[concat('nodeNic', parameters('sequence'))]",
     "addressPrefix": "10.0.0.0/16",
     "subnetName": "chefSubnet",
@@ -114,7 +115,7 @@
       "properties": {
         "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
         "dnsSettings": {
-          "domainNameLabel": "[parameters('vmName')]"
+          "domainNameLabel": "[variables('vmName')]"
         }
       }
     },
@@ -165,7 +166,7 @@
             "value": "[parameters('adminPassword')]"
           },
           "vmName": {
-            "value": "[parameters('vmName')]"
+            "value": "[variables('vmName')]"
           },
           "storageAccountName": {
             "value": "[variables('storageAccountName')]"
@@ -175,6 +176,9 @@
           },
           "location": {
             "value": "[variables('location')]"
+          },
+          "sequence": {
+            "value": "[parameters('sequence')]"
           }
         }
       }
@@ -194,7 +198,7 @@
         },
         "parameters": {
           "vmName": {
-            "value": "[parameters('vmName')]"
+            "value": "[variables('vmName')]"
           },
           "chefServerUrl": {
             "value": "[parameters('chefServerUrl')]"

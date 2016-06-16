@@ -21,7 +21,7 @@ The following table shows the parameters that this template expects:
 
 | Parameter         | Description                                                                                     | Default Value | Example        |
 |:------------------|:------------------------------------------------------------------------------------------------|:--------------|:---------------|
-| vmName            | Name of the virtual machine                                                                     |               | acme-node-01   |
+| vmName            | Name of the virtual machine                                                                     |               | acme-node      |
 | vmPlatform        | The type of machine to create                                                                   |               | linux          |
 | adminUsername     | Name of the administrator account                                                               | azure         |                |
 | adminPassword     | Password to be set for the admin user                                                           |               |                |
@@ -30,6 +30,10 @@ The following table shows the parameters that this template expects:
 | chefValidatorKey  | Base64 encoded string for the validation key                                                    |               |                |
 | chefRunlist       | Runlist to be applied to the machine                                                            |               |                |
 | sequence          | Helps to create uniquely named resources in the group, required for multiple machine generation | 1             | 2              |
+
+#### vmName
+
+The sequence number is appended to the end of the vmName.  This is so that the resources that are created are unique.  So if the `vmName` is specified as `acme-node` then it will be expanded to `acme-node-2` assuming that `sequence` is 2, as in the example value in the table above.
 
 #### vmPlatform
 

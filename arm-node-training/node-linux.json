@@ -37,14 +37,20 @@
       "metadata": {
         "description": "Azure location for the machine"
       }
+    },
+    "sequence": {
+      "type": "string",
+      "metadata": {
+        "description": "The sequence number for this deployment"
+      }
     }
   },
   "variables": {
     "storageAccountName": "[parameters('storageAccountName')]",
-    "dataDisk1VhdName": "datadisk1",
+    "dataDisk1VhdName": "[concat('dataDiskLinux', parameters('sequence'), '-1')]",
     "imagePublisher": "Canonical",
     "imageOffer": "UbuntuServer",
-    "OSDiskName": "osDiskLinux",
+    "OSDiskName": "[concat('osDiskLinux', parameters('sequence')]",
     "nicName": "[parameters('nicName')]",
     "vmStorageAccountContainerName": "vhds",
     "vmSize": "Standard_DS1",
