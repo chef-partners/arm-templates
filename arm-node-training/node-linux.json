@@ -50,7 +50,7 @@
     "dataDisk1VhdName": "[concat('dataDiskLinux', parameters('sequence'), '-1')]",
     "imagePublisher": "Canonical",
     "imageOffer": "UbuntuServer",
-    "OSDiskName": "[concat('osDiskLinux', parameters('sequence')]",
+    "OSDiskName": "[concat('osDiskLinux', parameters('sequence'))]",
     "nicName": "[parameters('nicName')]",
     "vmStorageAccountContainerName": "vhds",
     "vmSize": "Standard_DS1",

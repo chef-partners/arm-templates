@@ -50,7 +50,7 @@
     "dataDisk1VhdName": "[concat('dataDiskWindows', parameters('sequence'), '-1')]",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
-    "OSDiskName": "[concat('osDiskWindows', parameters('sequence')]",
+    "OSDiskName": "[concat('osDiskWindows', parameters('sequence'))]",
     "nicName": "[parameters('nicName')]",
     "vmStorageAccountContainerName": "vhds",
     "vmSize": "Standard_DS1",
