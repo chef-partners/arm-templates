@@ -11,13 +11,13 @@ This template will create a Compliance server in the specified resource group.  
 
 The following table describes what each parameter is used for and any that have default values.
 
-| Name           | Description                                                                                                           | Default Value | Example            |
-|:---------------|:----------------------------------------------------------------------------------------------------------------------|:--------------|:-------------------|
-| vmName         | Name of the virtual machine                                                                                           |               | chef-compliance-01 |
-| adminUsername  | SSH username for the server                                                                                           | azure         |                    |
-| adminPassword  | Password for the admin user                                                                                           |               |                    |
-| dnsLabelPrefix | Name that will be assigned to the DNS to make an FQDN for the machine. Typically this would be the same as the vmName |               | chef-compliance-01 |
-| chefServerSKU  | Name of the Chef Server SKU to use.                                                                                   | chefbyol      |                    |
+| Name                | Description                                                                                                           | Default Value       | Example            |
+|:--------------------|:----------------------------------------------------------------------------------------------------------------------|:--------------------|:-------------------|
+| vmName              | Name of the virtual machine                                                                                           |                     | chef-compliance-01 |
+| adminUsername       | SSH username for the server                                                                                           | azure               |                    |
+| adminPassword       | Password for the admin user                                                                                           |                     |                    |
+| dnsLabelPrefix      | Name that will be assigned to the DNS to make an FQDN for the machine. Typically this would be the same as the vmName |                     | chef-compliance-01 |
+| complianceServerSKU | Name of the Compliance Server SKU to use.                                                                             | azure-marketplace-5 |                    |
 
 Any of the parameters that have a default value do not appear in the `chefserver.parameters.json` file.  However to override the values add them to this file as required.
 

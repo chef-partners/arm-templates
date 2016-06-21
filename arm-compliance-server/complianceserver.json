@@ -286,7 +286,7 @@
           "computerName": "[parameters('vmName')]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
-          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\n', 'api_fqdn: ',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\n' ))]"
+          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ', reference(variables('publicIPAddressName')).dnsSettings.fqdn))]"
         },
         "storageProfile": {
           "imageReference": {
