@@ -23,13 +23,6 @@
       },
       "defaultValue": "1"
     },
-    "adminUsername": {
-      "type": "string",
-      "metadata": {
-        "description": "User name for the Virtual Machine."
-      },
-      "defaultValue": "azure"
-    },
     "adminPassword": {
       "type": "securestring",
       "metadata": {
@@ -159,9 +152,6 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "adminUsername": {
-            "value": "[parameters('adminUsername')]"
-          },
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
           },
