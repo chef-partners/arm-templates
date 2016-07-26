@@ -287,7 +287,7 @@
           "computerName": "[parameters('vmName')]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
-          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\n' ))]"
+          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\n\nbootcmd:\n - sed -i.bak \"s/^biscotti.*$/biscotti.enabled = false/\" /etc/chef-marketplace/marketplace.rb\n' ))]"
         },
         "storageProfile": {
           "imageReference": {
