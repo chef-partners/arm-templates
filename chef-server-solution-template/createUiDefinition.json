@@ -16,8 +16,12 @@
         "name": "adminUsername",
         "type": "Microsoft.Compute.UserNameTextBox",
         "label": "Username",
-        "toolTip": "Admin username for the virtual machines. The OpsCenter username is 'admin'.",
-        "osPlatform": "Linux"
+        "toolTip": "Admin username for the machine",
+        "osPlatform": "Linux",
+        "defaultValue": "azure",
+        "constraints": {
+          "required": true
+        }
       },
       {
           "name": "SSHCredentials",
@@ -45,12 +49,12 @@
     "steps": [
       {
         "name": "VirtualMachineConfig",
-        "label": "NVA myappliance settings",
+        "label": "Virtual machine settings",
         "subLabel": {
-          "preValidation": "Configure the myappliance settings",
+          "preValidation": "Configure the Chef Server virtual machine",
           "postValidation": "Done"
         },
-        "bladeTitle": "NVA myappliance settings",
+        "bladeTitle": "Virtual machine settings",
         "elements": [
           {
             "name": "Size",
@@ -84,7 +88,8 @@
             "label": "Storage account",
             "toolTip": "Storage Account for the Virtual Machine's Disks",
             "defaultValue": {
-              "type": "Standard_LRS"
+              "type": "Standard_LRS",
+              "name": "[take(replace(guid(), '-', ''), 15)]"
             },
             "constraints": {
               "allowedTypes": [
@@ -106,7 +111,8 @@
               "domainNameLabel": "DNS label for the Virtual Machine's public IP address."
             },
             "defaultValue": {
-              "publicIpAddressName": ""
+              "publicIpAddressName": "ChefServerPublicIPAddress",
+              "domainNameLabel": "[basics('Name')]"
             },
             "options": {
               "hideNone": true
@@ -121,26 +127,22 @@
             },
             "toolTip": {
                 "virtualNetwork": "Virtual Network Name",
-                "subnets": "Subnets requied for the NVA myappliance solution"
+                "subnets": "Subnets requied for the Chef Server solution"
             },
             "defaultValue": {
                 "name": "vnet01",
-                "addressPrefixSize": "/16"
+                "addressPrefixSize": "/22"
             },
             "constraints": {
                 "minAddressPrefixSize": "/16"
             },
             "subnets": {
                 "subnet1": {
-                    "label": "External facing subnet",
-                    "constraints": {
-                        "minAddressPrefixSize": "/24",
-                        "minAddressCount": 12,
-                        "requireContiguousAddresses": false
-                    }
-                },
-                "subnet2": {
-                    "label": "Protected subnet",
+                    "label": "Chef subnet",
+                    "defaultValue": {
+                      "name": "chefserver-subnet",
+                      "addressPrefixSize": "/24"
+                    },
                     "constraints": {
                         "minAddressPrefixSize": "/24",
                         "minAddressCount": 12,
@@ -148,46 +150,178 @@
                     }
                 }
             }
+          }
+        ]
+      },
+      {
+        "name": "ChefServerSetup",
+        "label": "Chef Server Setup",
+        "subLabel": {
+          "preValidation": "Specify Licence",
+          "postValidation": "Delightful"
         },
-        {
-          "name": "ChefServerSetup",
-          "label": "Chef Server Setup",
-          "subLabel": {
-            "preValidation": "Configure the your Chef Server",
-            "postValidation": "Delightful"
-          },
-          "bladeTitle": "Chef Server Setup",
-          "elements": [
-            {
-              "name": "Chef Server Admin User",
-              "type": "Microsoft.Compute.UserNameTextBox",
-              "label": "Username",
-              "toolTip": "This username will be used for logging into the Chef management console",
-              "osPlatform": "Linux"
-            },
-            {
-              "name": "Chef Server Admin Password",
-              "type": "Microsoft.Common.PasswordBox",
-              "label": {
-                  "password": "Password",
-                  "confirmPassword": "Confirm password"
-              },
-              "toolTip": "This password will be used for logging into the Chef management console",
-              "constraints": {
-                  "required": true,
-                  "regex": "",
-                  "validationMessage": ""
+        "bladeTitle": "Chef Server Licence",
+        "elements": [
+          {
+            "name": "SKU",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Chef Server Licence",
+            "toolTip": "Chef Server licence to use",
+            "defaultValue": "25 Nodes with support",
+            "constraints": {
+              "allowedValues": [
+                {
+                  "label": "Bring Your Own Licence",
+                  "value": "chefbyol"
                 },
-              "options": {
-                  "hideConfirmation": false
-              }
+                {
+                  "label": "25 Nodes with support",
+                  "value": "azure_marketplace-25"
+                },
+                {
+                  "label": "50 Nodes with support",
+                  "value": "azure_marketplace-50"
+                },
+                {
+                  "label": "100 Nodes with support",
+                  "value": "azure_marketplace-100"
+                },
+                {
+                  "label": "150 Nodes with support",
+                  "value": "azure_marketplace-150"
+                },
+                {
+                  "label": "200 Nodes with support",
+                  "value": "azure_marketplace-200"
+                },
+                {
+                  "label": "250 Nodes with support",
+                  "value": "azure_marketplace-250"
+                }
+              ],
+              "required": true
             },
-            {
-              "name": "",
-              "type": ""
+            "osPlatform": "Linux",
+            "count": 1
+          },
+          {
+            "name": "chefServerSignupDisable",
+            "type": "Microsoft.Common.OptionsGroup",
+            "label": "Disable Signup",
+            "defaultValue": "No",
+            "toolTip": "By default the Chef Server allows people to sign up from the Management Console.  Select 'Yes' to disable this",
+            "constraints": {
+              "allowedValues": [
+                {
+                  "label": "No",
+                  "value": "false"
+                },
+                {
+                  "label": "Yes",
+                  "value": "true"
+                }
+              ]
+            },
+            "visible": true
+          },
+          {
+            "name": "configurechef",
+            "type": "Microsoft.Common.OptionsGroup",
+            "label": "Configure Chef Server",
+            "defaultValue": "No",
+            "toolTip": "Select 'Yes' and then complete the form below if the Chef Server should be configured automatically",
+            "constraints": {
+              "allowedValues": [
+                {
+                  "label": "No",
+                  "value": "no"
+                },
+                {
+                  "label": "Yes",
+                  "value": "yes"
+                }
+              ]
+            },
+            "visible": true
+          }
+        ]
+      },
+      {
+        "name": "ChefServerConfiguration",
+        "label": "Chef Server Configuration",
+        "subLabel": {
+          "preValidation": "Create Organization and Initial User",
+          "postValidation": "Perfect"
+        },
+        "bladeTitle": "Chef Server Configuration",
+        "elements": [
+          {
+            "name": "chefServerOrg",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Organization",
+            "toolTip": "Name of the initial organization to create on the Chef Server",
+            "visible": true,
+            "constraints": {
+              "required": "[contains(steps('ChefServerSetup').configurechef, 'yes')]"
             }
-          ]
-        }
+          },
+          {
+            "name": "chefServerFirstName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "First Name",
+            "toolTip": "User first name",
+            "visible": true,
+            "constraints": {
+              "required": "[contains(steps('ChefServerSetup').configurechef, 'yes')]"
+            }
+          },    
+          {
+            "name": "chefServerLastName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Last Name",
+            "toolTip": "User last name",
+            "visible": true,
+            "constraints": {
+              "required": "[contains(steps('ChefServerSetup').configurechef, 'yes')]"
+            }
+          },
+          {
+            "name": "chefServerEmailAddress",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Email Address",
+            "toolTip": "Email address for the initial user",
+            "visible": true,
+            "constraints": {
+              "required": "[contains(steps('ChefServerSetup').configurechef, 'yes')]"
+            }
+          },                        
+          {
+            "name": "chefServerUser",
+            "type": "Microsoft.Compute.UserNameTextBox",
+            "label": "Console User",
+            "toolTip": "Initial user to create for access to the Chef Server Management console",
+            "osPlatform": "Linux",
+            "constraints": {
+              "required": "[contains(steps('ChefServerSetup').configurechef, 'yes')]"
+            },
+            "defaultValue": "chefadmin"
+          },
+          {
+            "name": "chefServerUserPassword",
+            "type": "Microsoft.Common.PasswordBox",
+            "label": {
+              "password": "Password",
+              "confirmPassword": "Confirm Password"
+            },
+            "toolTip": "Password for the chef server user",
+            "options": {
+              "hideConfirmation": false
+            },
+            "visible": true,
+            "constraints": {
+              "required": "[contains(steps('ChefServerSetup').configurechef, 'yes')]"
+            }
+          }
         ]
       }
     ],
@@ -199,28 +333,34 @@
       "authenticationType" : "[basics('SSHCredentials').authenticationType]",
       "vmSize": "[steps('VirtualMachineConfig').Size]",
       "location": "[location()]",
-      "newStorageAccountName" : "[steps('VirtualMachineConfig').storageAccount.name]",
-      "storageAccountType" : "[steps('VirtualMachineConfig').storageAccount.type]",
+
+      "storageAccountName": "[steps('VirtualMachineConfig').storageAccount.name]",
+      "storageAccountType": "[steps('VirtualMachineConfig').storageAccount.type]",
       "storageAccountNewOrExisting" : "[steps('VirtualMachineConfig').storageAccount.newOrExisting]",
       "storageAccountExistingRG" : "[steps('VirtualMachineConfig').storageAccount.resourceGroup]",
+
       "publicIPAddressName" : "[steps('VirtualMachineConfig').publicIpAddress.name]",
       "publicIPDnsName" : "[steps('VirtualMachineConfig').publicIpAddress.domainNameLabel]",
       "publicIPNewOrExisting" : "[steps('VirtualMachineConfig').publicIpAddress.newOrExistingOrNone]",
       "publicIPExistingRGName" : "[steps('VirtualMachineConfig').publicIpAddress.resourceGroup]",
+
       "virtualNetworkName" : "[steps('VirtualMachineConfig').virtualNetwork.name]",
       "virtualNetworkAddressPrefix" : "[steps('VirtualMachineConfig').virtualNetwork.addressPrefix]",
-      "Subnet1Name" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet1.name]",
-      "Subnet1Prefix" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet1.addressPrefix]",
-      "Subnet2Name" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet2.name]",
-      "Subnet2Prefix" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet2.addressPrefix]",
-      "vnetNewOrExisting" : "[steps('VirtualMachineConfig').virtualNetwork.newOrExisting]",
-      "virtualNetworkExistingRGName" : "[steps('VirtualMachineConfig').virtualNetwork.resourceGroup]",
-      "subnet1StartAddress" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet1.startAddress]",
-      "subnet2StartAddress" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet2.startAddress]",
-      "chefLicenses" : "[steps('Chef]",
-      "chefServerUser" : "[]",
-      "chefServerPassword" : "[]",
-      "chefOrganization" : "[]"
+      "virtualNetworkNewOrExisting": "[steps('VirtualMachineConfig').virtualNetwork.newOrExisting]",
+
+      "subnetName" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet1.name]",
+      "subnetPrefix" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet1.addressPrefix]",
+
+      "chefServerSku" : "[steps('ChefServerSetup').SKU]",
+      "chefServerSignupDisable": "[steps('ChefServerSetup').chefServerSignupDisable]",
+      "chefServerConfigure": "[steps('ChefServerSetup').configurechef]",
+      "chefServerOrg": "[steps('ChefServerConfiguration').chefServerOrg]",
+      "chefServerFirstName": "[steps('ChefServerConfiguration').chefServerFirstName]",
+      "chefServerLastName": "[steps('ChefServerConfiguration').chefServerLastName]",
+      "chefServerEmailAddress": "[steps('ChefServerConfiguration').chefServerEmailAddress]",
+      "chefServerUser": "[steps('ChefServerConfiguration').chefServerUser]",
+      "chefServerUserPassword": "[steps('ChefServerConfiguration').chefServerUserPassword]"
+      
     }
   }
 }

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the virtual machine in Azure, this will also be the hostname"
+      }
+    },
+    "chefServerOrg": {
+      "type": "string",
+      "metadata": {
+        "description": "Organization for the chef server"
+      }
+    },
+    "chefServerFirstName": {
+      "type": "string",
+      "metadata": {
+        "description": "First name of the initial user"
+      }
+    },
+    "chefServerLastName": {
+      "type": "string",
+      "metadata": {
+        "description": "Last name of the initial user"
+      }
+    }, 
+    "chefServerEmailAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Email Address for the new user"
+      }
+    },
+    "chefServerUser": {
+      "type": "string",
+      "metadata": {
+        "description": "Initial user for the management console"
+      }
+    },
+    "chefServerUserPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the initial user"
+      }
+    }
+  },
+  "variables": {
+  },
+  "resources": [],
+  "outputs": {
+
+  }
+}

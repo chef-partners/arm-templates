@@ -1,0 +1,75 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the virtual machine in Azure, this will also be the hostname"
+      }
+    },
+    "chefServerOrg": {
+      "type": "string",
+      "metadata": {
+        "description": "Organization for the chef server"
+      }
+    },
+    "chefServerFirstName": {
+      "type": "string",
+      "metadata": {
+        "description": "First name of the initial user"
+      }
+    },
+    "chefServerLastName": {
+      "type": "string",
+      "metadata": {
+        "description": "Last name of the initial user"
+      }
+    }, 
+    "chefServerEmailAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Email Address for the new user"
+      }
+    },
+    "chefServerUser": {
+      "type": "string",
+      "metadata": {
+        "description": "Initial user for the management console"
+      }
+    },
+    "chefServerUserPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the initial user"
+      }
+    }
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "validationKeyPath": "[concat('/etc/chef/', replace(toLower(parameters('chefServerOrg')), ' ', ''), '-validator.pem')]",
+    "chefSetupCmd": "[concat('chef-marketplace-ctl setup --yes --eula --org \"', parameters('chefServerOrg'), '\" --username ', parameters('chefServerUser'), ' --password ', parameters('chefServerUserPassword'), ' --firstname ', parameters('chefServerFirstName'), ' --lastname ', parameters('chefServerLastName'), ' --email ', parameters('chefServerEmailAddress'), ' > ', variables('validationKeyPath'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmName'),'/chefmarketplacesetup')]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "1.3",
+        "settings": {
+          "commandToExecute": "[string(variables('chefSetupCmd'))]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+
+  }
+}

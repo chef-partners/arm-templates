@@ -2,3 +2,6 @@
 .chef
 .DS_Store
 *.local.json
+.envrc
+.direnv
+.ruby-version
