@@ -5,3 +5,4 @@
 .envrc
 .direnv
 .ruby-version
+*.parameters.local.json

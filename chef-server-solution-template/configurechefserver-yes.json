@@ -12,37 +12,43 @@
       "type": "string",
       "metadata": {
         "description": "Organization for the chef server"
-      }
+      },
+      "defaultValue": ""
     },
     "chefServerFirstName": {
       "type": "string",
       "metadata": {
         "description": "First name of the initial user"
-      }
+      },
+      "defaultValue": ""
     },
     "chefServerLastName": {
       "type": "string",
       "metadata": {
         "description": "Last name of the initial user"
-      }
+      },
+      "defaultValue": ""
     }, 
     "chefServerEmailAddress": {
       "type": "string",
       "metadata": {
         "description": "Email Address for the new user"
-      }
+      },
+      "defaultValue": ""
     },
     "chefServerUser": {
       "type": "string",
       "metadata": {
         "description": "Initial user for the management console"
-      }
+      },
+      "defaultValue": ""
     },
     "chefServerUserPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Password for the initial user"
-      }
+      },
+      "defaultValue": ""
     }
   },
   "variables": {

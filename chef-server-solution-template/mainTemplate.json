@@ -39,12 +39,21 @@
       "type": "securestring",
       "metadata": {
         "description": "Password for the Virtual Machine."
-      }
+      },
+      "defaultValue": ""
     },
     "sshPublicKey": {
       "type": "string",
       "metadata": {
         "description": "SSH Public key for the specified user"
+      },
+      "defaultValue": ""
+    },
+
+    "resourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the resource group into which everything will be deployed"
       }
     },
 
@@ -125,6 +134,7 @@
       "type": "string",
       "defaultValue": "azure_marketplace-25",
       "allowedValues": [
+        "chefbyol",
         "azure_marketplace-25",
         "azure_marketplace-50",
         "azure_marketplace-100",
@@ -155,37 +165,43 @@
       "type": "string",
       "metadata": {
         "description": "The organization to create on the chef server"
-      }
+      },
+      "defaultValue": ""
     },
     "chefServerFirstName": {
       "type": "string",
       "metadata": {
         "description": "First name of the initial user"
-      }
+      },
+      "defaultValue": ""
     },
     "chefServerLastName": {
       "type": "string",
       "metadata": {
         "description": "Last name of the initial user"
-      }
+      },
+      "defaultValue": ""
     }, 
     "chefServerEmailAddress": {
       "type": "string",
       "metadata": {
         "description": "Email Address for the new user"
-      }
+      },
+      "defaultValue": ""
     },   
     "chefServerUser": {
       "type": "string",
       "metadata": {
         "description": "The initial user"
-      }
+      },
+      "defaultValue": ""
     },
     "chefServerUserPassword": {
       "type": "securestring",
       "metadata": {
         "description": "The password for the initial user"
-      }
+      },
+      "defaultValue": ""
     }
     
   },
@@ -257,7 +273,7 @@
       "properties": {
           "mode": "Incremental",
           "templateLink": {
-            "uri": "[variables('template_urls').storageAccount]",
+            "uri": "[variables('template_urls').publicIPAddress]",
             "contentVersion": "1.0.0.0"
           },
           "parameters": {

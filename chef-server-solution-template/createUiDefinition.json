@@ -334,15 +334,15 @@
       "vmSize": "[steps('VirtualMachineConfig').Size]",
       "location": "[location()]",
 
+      "resourceGroupName": "[steps('VirtualMachineConfig').storageAccount.resourceGroup]",
+
       "storageAccountName": "[steps('VirtualMachineConfig').storageAccount.name]",
       "storageAccountType": "[steps('VirtualMachineConfig').storageAccount.type]",
       "storageAccountNewOrExisting" : "[steps('VirtualMachineConfig').storageAccount.newOrExisting]",
-      "storageAccountExistingRG" : "[steps('VirtualMachineConfig').storageAccount.resourceGroup]",
 
       "publicIPAddressName" : "[steps('VirtualMachineConfig').publicIpAddress.name]",
       "publicIPDnsName" : "[steps('VirtualMachineConfig').publicIpAddress.domainNameLabel]",
       "publicIPNewOrExisting" : "[steps('VirtualMachineConfig').publicIpAddress.newOrExistingOrNone]",
-      "publicIPExistingRGName" : "[steps('VirtualMachineConfig').publicIpAddress.resourceGroup]",
 
       "virtualNetworkName" : "[steps('VirtualMachineConfig').virtualNetwork.name]",
       "virtualNetworkAddressPrefix" : "[steps('VirtualMachineConfig').virtualNetwork.addressPrefix]",
