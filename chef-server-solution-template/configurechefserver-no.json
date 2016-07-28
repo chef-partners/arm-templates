@@ -58,7 +58,7 @@
     }
   },
   "variables": {
-      "chefServerURL": "[concat(parameters('fqdn'), '/signup/')]"
+      "chefServerURL": "[concat('https://', parameters('fqdn'), '/signup/')]"
   },
   "resources": [],
   "outputs": {

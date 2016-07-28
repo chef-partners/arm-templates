@@ -61,7 +61,7 @@
     "location": "[resourceGroup().location]",
     "validationKeyPath": "[concat('/etc/chef/', replace(toLower(parameters('chefServerOrg')), ' ', ''), '-validator.pem')]",
     "chefSetupCmd": "[concat('chef-marketplace-ctl setup --yes --eula --org \"', parameters('chefServerOrg'), '\" --username ', parameters('chefServerUser'), ' --password ', parameters('chefServerUserPassword'), ' --firstname ', parameters('chefServerFirstName'), ' --lastname ', parameters('chefServerLastName'), ' --email ', parameters('chefServerEmailAddress'), ' > ', variables('validationKeyPath'))]",
-    "chefServerURL": "[concat(parameters('fqdn'), '/organizations/', replace(toLower(parameters('chefServerOrg')), ' ', ''))]"
+    "chefServerURL": "[concat('https://', parameters('fqdn'), '/organizations/', replace(toLower(parameters('chefServerOrg')), ' ', ''))]"
   },
   "resources": [
     {
