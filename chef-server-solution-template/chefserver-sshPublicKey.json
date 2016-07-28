@@ -68,7 +68,8 @@
     "OSDiskName": "chefServerOSDisk",
     "nicName": "[parameters('nicName')]",
     "vmStorageAccountContainerName": "vhds",
-    "apiVersion": "2015-06-15"
+    "apiVersion": "2015-06-15",
+    "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]"
   },
   "resources": [
     {
@@ -93,7 +94,8 @@
             "ssh": {
               "publicKeys": [
                 {
-                  "keyData": "[parameters('sshPublicKey')]"
+                  "keyData": "[parameters('sshPublicKey')]",
+                  "path": "[variables('sshKeyPath')]"
                 }
               ]
             }
