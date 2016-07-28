@@ -49,12 +49,22 @@
         "description": "Password for the initial user"
       },
       "defaultValue": ""
+    },
+    "fqdn": {
+      "type": "string",
+      "metadata": {
+        "description": "FQDN of the chef server, this is used to display the URL to use to access the server"
+      }
     }
   },
   "variables": {
+      "chefServerURL": "[concat(parameters('fqdn'), '/signup/')]"
   },
   "resources": [],
   "outputs": {
-
+    "chefServerURL": {
+      "type": "string",
+      "value": "[variables('chefServerURL')]"
+    }
   }
 }

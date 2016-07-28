@@ -433,6 +433,9 @@
           },
           "chefServerUserPassword": {
             "value": "[parameters('chefServerUserPassword')]"
+          },
+          "fqdn": {
+            "value": "[reference('PublicIPAddressSetup').outputs.fqdn.value]"
           }
         }
       }
@@ -447,9 +450,9 @@
       "type": "string",
       "value": "[concat('ssh ', parameters('adminUsername'), '@', reference('PublicIPAddressSetup').outputs.fqdn.value)]"
     },
-    "chefServerSignUpURL": {
+    "chefServerURL": {
       "type": "string",
-      "value": "[concat('https://', reference('PublicIPAddressSetup').outputs.fqdn.value, '/signup')]"
+      "value": "[reference('ChefServerConfiguration').outputs.chefServerURL.value]"
     }
   }
 }
