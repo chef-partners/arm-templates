@@ -69,9 +69,6 @@
       "name": "[concat(parameters('vmName'),'/chefmarketplacesetup')]",
       "apiVersion": "2015-05-01-preview",
       "location": "[variables('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
-      ],
       "properties": {
         "publisher": "Microsoft.OSTCExtensions",
         "type": "CustomScriptForLinux",
