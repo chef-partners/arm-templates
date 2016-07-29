@@ -205,7 +205,7 @@
             "count": 1
           },
           {
-            "name": "chefServerSignupDisable",
+            "name": "chefServerSignupEnable",
             "type": "Microsoft.Common.OptionsGroup",
             "label": "Disable Signup",
             "defaultValue": "No",
@@ -214,11 +214,11 @@
               "allowedValues": [
                 {
                   "label": "No",
-                  "value": "false"
+                  "value": "true"
                 },
                 {
                   "label": "Yes",
-                  "value": "true"
+                  "value": "false"
                 }
               ]
             },
@@ -229,7 +229,7 @@
             "type": "Microsoft.Common.OptionsGroup",
             "label": "Configure Chef Server",
             "defaultValue": "No",
-            "toolTip": "Select 'Yes' and then complete the form below if the Chef Server should be configured automatically",
+            "toolTip": "Select 'yes' and complete the form on the next blade to create the initial user on the server",
             "constraints": {
               "allowedValues": [
                 {
@@ -258,8 +258,8 @@
           {
             "name": "chefServerOrg",
             "type": "Microsoft.Common.TextBox",
-            "label": "Organization",
-            "toolTip": "Name of the initial organization to create on the Chef Server",
+            "label": "Company",
+            "toolTip": "Your company name - this is NOT the organization in the Chef server",
             "visible": true,
             "constraints": {
               "required": "[contains(steps('ChefServerSetup').configurechef, 'yes')]"
@@ -352,7 +352,7 @@
       "subnetPrefix" : "[steps('VirtualMachineConfig').virtualNetwork.subnets.subnet1.addressPrefix]",
 
       "chefServerSku" : "[steps('ChefServerSetup').SKU]",
-      "chefServerSignupDisable": "[steps('ChefServerSetup').chefServerSignupDisable]",
+      "chefServerSignupEnable": "[steps('ChefServerSetup').chefServerSignupEnable]",
       "chefServerConfigure": "[steps('ChefServerSetup').configurechef]",
       "chefServerOrg": "[steps('ChefServerConfiguration').chefServerOrg]",
       "chefServerFirstName": "[steps('ChefServerConfiguration').chefServerFirstName]",
