@@ -237,7 +237,7 @@
       "configureChefServer": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/chef-server-solution-template/configurechefserver-', parameters('chefServerConfigure'), '.json')]"
     },
 
-    "cloudHead": "[concat('#cloud-config\nmanage_etc_hosts: true\n\npackage_update: true\npackage_upgrade: false\n\nbootcmd:\n - sed -i.bak \"s/^biscotti.*$/biscotti.enabled = false/\" /etc/chef-marketplace/marketplace.rb\n - sed -i.bak \"s/^manage\\.marketplace.*$/manage.marketplace.sign_up.enabled = ', parameters('chefServerSignupEnable'), '/\" /etc/chef-marketplace/marketplace.rb\n')]"
+    "cloudHead": "[concat('#cloud-config\nmanage_etc_hosts: true\n\npackage_update: true\npackage_upgrade: false\n\nbootcmd:\n - sed -i.bak \"s/^biscotti.*$/biscotti.enabled = false/\" /etc/chef-marketplace/marketplace.rb\n - sed -i.bak \"s/^manage\\.marketplace.*$/manage.sign_up.enabled = ', parameters('chefServerSignupEnable'), '/\" /etc/chef-marketplace/marketplace.rb\n')]"
 
   },
   "resources": [
