@@ -1,0 +1,409 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.1",
+  "parameters": {
+    "vmPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the virtual machine"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "azure",
+      "metadata": {
+        "description": "User name for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    }
+  },
+  "variables": {
+    "unique": "[uniquestring(subscription().subscriptionId, resourceGroup().id, parameters('vmPrefix'))]",
+    "storageAccountName": "[variables('unique')]",
+    "location": "[resourceGroup().location]",
+
+    "vnetAddressPrefix": "10.0.0.0/24",
+    "subnetName": "chefSubnet",
+    "subnetPrefix": "10.0.0.0/26",
+    "storageAccountType": "Standard_LRS",
+    "publicIPAddressType": "Dynamic",
+    "vmStorageAccountContainerName": "vhds",
+    "vmSize": "Standard_A5",
+
+    "image": {
+      "chef": {
+        "publisher": "chef-software",
+        "offer": "chef-server",
+        "sku": "chefbyol"
+      },
+      "compliance": {
+        "publisher": "canonical",
+        "offer": "ubuntuserver",
+        "sku": "14.04.4-LTS"
+      }
+    },
+
+    "vm": {
+      "chef": "[toLower(concat(parameters('vmPrefix'), '-chef-', substring(variables('unique'), 0, 4)))]",
+      "compliance": "[toLower(concat(parameters('vmPrefix'), '-comp-', substring(variables('unique'), 0, 4)))]"
+    },
+
+    "name": {
+      "virtualNetwork": "[concat(parameters('vmPrefix'), '-virtualnetwork')]",
+      "storageAccount": "[concat(parameters('vmPrefix'), '-storageaccount')]",
+      "publicIp": {
+        "chef": "[concat(variables('vm').chef, '-PublicIP')]",
+        "compliance": "[concat(variables('vm').compliance, '-PublicIP')]"
+      },
+      "nic": {
+        "chef": "[concat(variables('vm').chef, '-Nic')]",
+        "compliance": "[concat(variables('vm').compliance, '-Nic')]"
+      },
+      "disk": {
+        "os": {
+          "chef": "[concat(variables('vm').chef, '-OSDisk')]",
+          "compliance": "[concat(variables('vm').compliance, '-OSDisk')]"
+        },
+        "data": {
+          "chef": "[concat(variables('vm').chef, '-DataDisk')]",
+          "compliance":  "[concat(variables('vm').compliance, '-DataDisk')]"
+        }
+      }
+    },
+
+    "cloudHead": "#cloud-config\nmanage_etc_hosts: true\n\npackage_update: true\npackage_upgrade: false\n",
+
+    "apiVersion": "2015-06-15",
+
+    "templateURLs": {
+      "storageAccount": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-storage-account/storageaccount_new.json",
+      "vnet": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-virtual-network/vnet_new.json"
+    },
+
+    "dnsLabelPrefix": {
+      "chef": "[variables('vm').chef]",
+      "compliance": "[variables('vm').compliance]"
+    },
+
+    "urls": {
+      "installCompliance": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/scripts/install-compliance.sh"
+    }
+  },
+  "resources": [
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[variables('name').storageAccount]",
+      "apiVersion": "2016-02-01",
+      "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "uri": "[variables('templateURLs').storageAccount]",
+            "contentVersion": "1.0.0.0"
+          },
+          "parameters": {
+            "location": {
+              "value": "[variables('location')]"
+            },
+            "storageAccountType": {
+              "value": "[variables('storageAccountType')]"
+            },
+            "storageAccountName": {
+              "value": "[variables('storageAccountName')]"
+            }
+          }
+      }
+    },
+
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('name').publicIp.chef]",
+      "location": "[variables('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[variables('dnsLabelPrefix').chef]"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('name').publicIp.compliance]",
+      "location": "[variables('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[variables('dnsLabelPrefix').compliance]"
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[variables('name').virtualNetwork]",
+      "apiVersion": "2016-02-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateURLs').vnet]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "virtualNetworkName": {
+            "value": "[variables('name').virtualNetwork]"
+          },
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "vnetAddressPrefix": {
+            "value": "[variables('vnetAddressPrefix')]"
+          },
+          "subnetName": {
+            "value": "[variables('subnetName')]"
+          },
+          "subnetPrefix": {
+            "value": "[variables('subnetPrefix')]"
+          }
+        }
+      }
+    },
+
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('name').nic.chef]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('name').publicIp.chef)]",
+        "[concat('Microsoft.Resources/deployments/', variables('name').virtualNetwork)]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('name').publicIp.chef)]"
+              },
+              "subnet": {
+                "id": "[reference(concat('Microsoft.Resources/deployments/', variables('name').virtualNetwork)).outputs.subnetRef.value]"
+              }
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('name').nic.compliance]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('name').publicIp.compliance)]",
+        "[concat('Microsoft.Resources/deployments/', variables('name').virtualNetwork)]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('name').publicIp.compliance)]"
+              },
+              "subnet": {
+                "id": "[reference(concat('Microsoft.Resources/deployments/', variables('name').virtualNetwork)).outputs.subnetRef.value]"
+              }
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('vm').chef]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').storageAccount)]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('name').nic.chef)]"
+      ],
+      "plan": {
+        "name": "[variables('image').chef.sku]",
+        "publisher": "[variables('image').chef.publisher]",
+        "product": "[variables('image').chef.offer]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('vm').chef]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ',reference(variables('name').publicIp.chef).dnsSettings.fqdn,'\n\nbootcmd:\n - sed -i.bak \"s/^biscotti.*$/biscotti.enabled = false/\" /etc/chef-marketplace/marketplace.rb\n' ))]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('image').chef.publisher]",
+            "offer": "[variables('image').chef.offer]",
+            "sku": "[variables('image').chef.sku]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[variables('name').disk.os.chef]",
+            "vhd": {
+              "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('name').disk.os.chef,'.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "name": "[variables('name').disk.data.chef]",
+              "diskSizeGB": "100",
+              "lun": 0,
+              "vhd": {
+                "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('name').disk.data.chef,'.vhd')]"
+              },
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('name').nic.chef)]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "false",
+            "storageUri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('vm').compliance]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').storageAccount)]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('name').nic.compliance)]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('vm').compliance]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('image').compliance.publisher]",
+            "offer": "[variables('image').compliance.offer]",
+            "sku": "[variables('image').compliance.sku]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[variables('name').disk.os.compliance]",
+            "vhd": {
+              "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('name').disk.os.compliance,'.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "name": "[variables('name').disk.data.compliance]",
+              "diskSizeGB": "100",
+              "lun": 0,
+              "vhd": {
+                "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('name').disk.data.compliance,'.vhd')]"
+              },
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('name').nic.compliance)]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "false",
+            "storageUri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "properties": {
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "1.5",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('urls').installCompliance]"
+          ],
+          "commandToExecute": "bash ./install-compliance.sh"
+        }
+      },
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vm').compliance)]"
+      ],
+      "apiVersion": "2015-06-15",
+      "name": "[concat(variables('vm').compliance, '/InstallCompliance')]"
+    }
+  ],
+  "outputs": {
+    "chef-fqdn": {
+      "type": "string",
+      "value": "[reference(variables('name').publicIp.chef).dnsSettings.fqdn]"
+    },
+    "compliance-fqdn": {
+      "type": "string",
+      "value": "[reference(variables('name').publicIp.compliance).dnsSettings.fqdn]"
+    },
+    "chef-sshCommand": {
+      "type": "string",
+      "value": "[concat('ssh ', parameters('adminUsername'), '@', reference(variables('name').publicIp.chef).dnsSettings.fqdn)]"
+    },
+    "compliance-sshCommand": {
+      "type": "string",
+      "value": "[concat('ssh ', parameters('adminUsername'), '@', reference(variables('name').publicIp.compliance).dnsSettings.fqdn)]"
+    },
+    "chef-serverUrl": {
+      "type": "string",
+      "value": "[concat('https://', reference(variables('name').publicIp.chef).dnsSettings.fqdn)]"
+    },
+    "cmpliance-serverUrl": {
+      "type": "string",
+      "value": "[concat('https://', reference(variables('name').publicIp.compliance).dnsSettings.fqdn)]"
+    }
+  }
+}
