@@ -47,10 +47,10 @@
   },
   "variables": {
     "storageAccountName": "[parameters('storageAccountName')]",
-    "dataDisk1VhdName": "[concat('dataDiskWindows', parameters('sequence'), '-1')]",
+    "dataDisk1VhdName": "[concat(parameters('vmName'), '-DataDisk-1')]",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
-    "OSDiskName": "[concat('osDiskWindows', parameters('sequence'))]",
+    "OSDiskName": "[concat(parameters('vmName'), '-OSDisk')]",
     "nicName": "[parameters('nicName')]",
     "vmStorageAccountContainerName": "vhds",
     "vmSize": "Standard_DS1",

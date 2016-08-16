@@ -47,10 +47,10 @@
   },
   "variables": {
     "storageAccountName": "[parameters('storageAccountName')]",
-    "dataDisk1VhdName": "[concat('dataDiskLinux', parameters('sequence'), '-1')]",
+    "dataDisk1VhdName": "[concat(parameters('vmName'), '-DataDisk-1')]",
     "imagePublisher": "Canonical",
     "imageOffer": "UbuntuServer",
-    "OSDiskName": "[concat('osDiskLinux', parameters('sequence'))]",
+    "OSDiskName": "[concat(parameters('vmName'), '-OSDisk')]",
     "nicName": "[parameters('nicName')]",
     "vmStorageAccountContainerName": "vhds",
     "vmSize": "Standard_DS1",
