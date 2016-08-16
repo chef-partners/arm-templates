@@ -2,15 +2,17 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "vmName": {
+    "vmPrefix": {
       "type": "string",
       "metadata": {
-        "description": "Name of the computer.  This will also be used as the DNS label prefix"
+        "description": "Prefix of the node to create.  Try to keep this short.  It will be also used for the DNS name.  The prefix must be the same as the one used when deploying the chef server."
       }
     },
     "vmPlatform": {
       "type": "string",
-      "metadata": "The platform of the machine to create, e.g. Windows or Linux",
+      "metadata": {
+        "description": "The platform of the machine to create, e.g. Windows or Linux"
+      },
       "allowedValues": [
         "windows",
         "linux"
@@ -62,22 +64,24 @@
     }
   },
   "variables": {
-    "vmName": "[concat(parameters('vmName'), '-', parameters('sequence'))]",
-    "storageAccountName": "[uniquestring(subscription().subscriptionId, resourceGroup().id, variables('vmName'))]",
-    "nicName": "[concat('nodeNic', parameters('sequence'))]",
+    "unique": "[uniquestring(subscription().subscriptionId, resourceGroup().id, parameters('vmPrefix'))]",
+    "storageAccountName": "[variables('unique')]",
+    "vmName": "[concat(take(parameters('vmPrefix'), 8), '-', parameters('sequence'), '-', substring(variables('unique'), 0, 4))]",
+    "nicName": "[concat(variables('vmName'), '-Nic')]",
     "addressPrefix": "10.0.0.0/16",
     "subnetName": "chefSubnet",
     "subnetPrefix": "10.0.0.0/24",
     "storageAccountType": "Standard_LRS",
-    "publicIPAddressName": "[concat('nodePublicIP', parameters('sequence'))]",
+    "publicIPAddressName": "[concat(variables('vmName'), '-PublicIP')]",
     "publicIPAddressType": "Dynamic",
     "templateURLs": {
-      "storageAccount": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-storage-account/storageaccount_new.json",
-      "vnet": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-virtual-network/vnet_new.json",
+      "storageAccount": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-storage-account/storageaccount_exists.json",
+      "vnet": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-virtual-network/vnet_exists.json",
       "node": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/node-', parameters('vmPlatform'), '.json')]",
-      "chefextension": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/chefextension-', parameters('vmPlatform'), '.json')]"
+      "chefextension": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/chefextension-', parameters('vmPlatform'), '.json')]",
+      "publicIPAddress": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-public-ipaddress/publicipaddress_new.json"
     },
-    "virtualNetworkName": "chefNetwork",
+    "virtualNetworkName": "[concat(parameters('vmPrefix'), '-virtualnetwork')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
     "apiVersion": "2015-06-15",
@@ -107,25 +111,41 @@
         }
       }
     },
+
     {
-      "apiVersion": "[variables('apiVersion')]",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[variables('publicIPAddressName')]",
-      "location": "[resourceGroup().location]",
+      "type": "Microsoft.Resources/deployments",
+      "name": "PublicIPAddressSetup",
+      "apiVersion": "2016-02-01",
       "properties": {
-        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
-        "dnsSettings": {
-          "domainNameLabel": "[variables('vmName')]"
-        }
+          "mode": "Incremental",
+          "templateLink": {
+            "uri": "[variables('templateURLs').publicIPAddress]",
+            "contentVersion": "1.0.0.0"
+          },
+          "parameters": {
+            "location": {
+              "value": "[variables('location')]"
+            },
+            "publicIPAddressName": {
+              "value": "[variables('publicIPAddressName')]"
+            },
+            "publicIPAddressType": {
+              "value": "[variables('publicIPAddressType')]"
+            },
+            "dnsLabelPrefix": {
+              "value": "[variables('vmName')]"
+            }
+          }
       }
     },
+
     {
       "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('nicName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
+        "Microsoft.Resources/deployments/PublicIPAddressSetup"
       ],
       "properties": {
         "ipConfigurations": [
@@ -217,7 +237,7 @@
     }
   ],
   "outputs": {
-    "hostname": {
+    "fqdn": {
       "type": "string",
       "value": "[reference('vmCreate').outputs.hostname.value]"
     }
