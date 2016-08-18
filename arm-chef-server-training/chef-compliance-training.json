@@ -5,7 +5,7 @@
     "vmPrefix": {
       "type": "string",
       "metadata": {
-        "description": "Name of the virtual machine"
+        "description": "Prefix for the Chef and Compliance server, e.g. rjs"
       }
     },
     "adminUsername": {
@@ -82,7 +82,10 @@
 
     "templateURLs": {
       "storageAccount": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-storage-account/storageaccount_new.json",
-      "vnet": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-virtual-network/vnet_new.json"
+      "vnet": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-virtual-network/vnet_new.json",
+      "nsg": {
+        "chefservers": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-security-groups/chef-servers.json"
+      }
     },
 
     "dnsLabelPrefix": {
@@ -148,6 +151,24 @@
 
     {
       "type": "Microsoft.Resources/deployments",
+      "name": "ChefServersNSG",
+      "apiVersion": "2016-02-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateURLs').nsg.chefservers]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
       "name": "[variables('name').virtualNetwork]",
       "apiVersion": "2016-02-01",
       "properties": {
@@ -183,9 +204,13 @@
       "location": "[variables('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/publicIPAddresses/', variables('name').publicIp.chef)]",
-        "[concat('Microsoft.Resources/deployments/', variables('name').virtualNetwork)]"
+        "[concat('Microsoft.Resources/deployments/', variables('name').virtualNetwork)]",
+        "Microsoft.Resources/deployments/ChefServersNSG"
       ],
       "properties": {
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', reference('ChefServersNSG').outputs.groupName.value)]"
+        },
         "ipConfigurations": [
           {
             "name": "ipconfig1",
@@ -213,6 +238,9 @@
         "[concat('Microsoft.Resources/deployments/', variables('name').virtualNetwork)]"
       ],
       "properties": {
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', reference('ChefServersNSG').outputs.groupName.value)]"
+        },
         "ipConfigurations": [
           {
             "name": "ipconfig1",
@@ -313,7 +341,8 @@
         "osProfile": {
           "computerName": "[variables('vm').compliance]",
           "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "adminPassword": "[parameters('adminPassword')]",
+          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ',reference(variables('name').publicIp.chef).dnsSettings.fqdn))]"
         },
         "storageProfile": {
           "imageReference": {

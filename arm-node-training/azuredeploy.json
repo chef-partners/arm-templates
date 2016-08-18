@@ -79,7 +79,10 @@
       "vnet": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-virtual-network/vnet_exists.json",
       "node": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/node-', parameters('vmPlatform'), '.json')]",
       "chefextension": "[concat('https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-node-training/chefextension-', parameters('vmPlatform'), '.json')]",
-      "publicIPAddress": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-public-ipaddress/publicipaddress_new.json"
+      "publicIPAddress": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-public-ipaddress/publicipaddress_new.json",
+      "nsg": {
+        "chefnodes": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-security-groups/chef-nodes.json"
+      }
     },
     "virtualNetworkName": "[concat(parameters('vmPrefix'), '-virtualnetwork')]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
@@ -140,14 +143,36 @@
     },
 
     {
+      "type": "Microsoft.Resources/deployments",
+      "name": "ChefNodesNSG",
+      "apiVersion": "2016-02-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateURLs').nsg.chefnodes]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          }
+        }
+      }
+    },
+
+    {
       "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('nicName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "Microsoft.Resources/deployments/PublicIPAddressSetup"
+        "Microsoft.Resources/deployments/PublicIPAddressSetup",
+        "Microsoft.Resoutces/deployments/ChefNodesNSG"
       ],
       "properties": {
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', reference('ChefServersNSG').outputs.groupName.value)]"
+        },
         "ipConfigurations": [
           {
             "name": "ipconfig1",
