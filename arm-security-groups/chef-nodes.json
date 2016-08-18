@@ -84,6 +84,7 @@
   ],
   "outputs": {
     "groupName": {
+      "type": "string",
       "value": "[parameters('groupName')]"
     }
   }
