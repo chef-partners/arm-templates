@@ -111,6 +111,20 @@ do
 while ($Retry -eq $true)
 
 Write-Verbose -Message 'Generate Chef Test Kitchen "credentials" file, located in the ".azure" folder of the user''s home directory.'
+
+# Determine the path to the credentials file
+$credentials_path = "~/.azure/credentials"
+
+if (Test-Path -Path $credentials_path) {
+
+	# Move the existing file to a backup
+	$backup_path = "~/.azure/credentials.bak-{0}" -f ([int][double]::Parse((get-date -uformat %s)))
+
+	Copy-Item $credentials_path $backup_path
+
+	Write-Verbose -Message ("Existing credentials file saved to: {0}" -f $backup_path)
+}
+
 $CredentialsFile = New-Item "~\.azure\credentials" -ItemType file -Force
 $CredentialsFileWriteFilestream = $CredentialsFile.CreateText()
 $CredentialsFileWriteFilestream.WriteLine("[$($AzureContext.Subscription.SubscriptionId)]")
