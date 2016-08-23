@@ -22,7 +22,7 @@ dpkg -i delivery_0.5.125-1_amd64.deb
 which delivery-ctl >> $LOG_FILE
 
 # Build up the command to be run
-cmd="/usr/bin/delivery-ctl setup --license $1 --key $2 --server-url $3 --fqdn $4 -e "$5" --configure --no-build-node >> $LOG_FILE 2> $LOG_FILE"
+cmd="sudo /usr/bin/delivery-ctl setup --license $1 --key $2 --server-url $3 --fqdn $4 -e "$5" --configure --no-build-node >> $LOG_FILE 2>> $LOG_FILE"
 
 echo "Setup command" >> $LOG_FILE
 echo $cmd >> $LOG_FILE
