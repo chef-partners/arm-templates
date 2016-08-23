@@ -13,7 +13,18 @@ LOG_FILE="/root/automate-setup.log"
 echo "$0 $1 $2 $3 $4 $5" > $LOG_FILE
 echo >> $LOG_FILE
 
+echo "Downloading Automate" >> $LOG_FILE
 wget https://packages.chef.io/stable/ubuntu/14.04/delivery_0.5.125-1_amd64.deb
+
+echo "Installing Automate" >> $LOG_FILE
 dpkg -i delivery_0.5.125-1_amd64.deb
 
-delivery-ctl setup --license $1 --key $2 --server-url $3 --fqdn $4 -e "$5" --configure --no-build-node >> $LOG_FILE
+# Build up the command to be run
+cmd="delivery-ctl setup --license $1 --key $2 --server-url $3 --fqdn $4 -e "$5" --configure --no-build-node >> $LOG_FILE 2> $LOG_FILE"
+
+echo "Setup command" >> $LOG_FILE
+echo $cmd >> $LOG_FILE
+
+# Execute the command
+`$cmd`
+
