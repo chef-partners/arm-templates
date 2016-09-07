@@ -110,13 +110,6 @@
         "exists"
       ]
     },
-    "storageAccountTemplateBaseUrl": {
-      "type": "string",
-      "metadata": {
-        "string": "Base URL storage account templates"
-      },
-      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-storage-account"
-    },
 
     "virtualNetworkMode": {
       "type": "string",
@@ -130,12 +123,48 @@
       ]
     },
 
-    "virtualNetworkTemplateBaseUrl": {
+    "baseTemplateUrl": {
       "type": "string",
       "metadata": {
-        "description": "Base URL for the Virtual Network ARM templates"
+        "description": "Base URL for templates"
       },
-      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/arm-virtual-network"
+      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/master"
+    },
+
+    "enableMonitoring": {
+      "type": "string",
+      "metadata": {
+        "description": "Specify if OMS monitoring should be enabled or not.  Default: No"
+      },
+      "defaultValue": "no",
+      "allowedValues": [
+        "yes",
+        "no"
+      ]
+    },
+
+    "omsWorkspaceId": {
+      "type": "string",
+      "metadata": {
+        "description": "ID of the OMS workspace to write logs to"
+      },
+      "defaultValue": ""
+    },
+
+    "omsWorkspaceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the workspace"
+      },
+      "defaultValue": ""
+    },
+
+    "omsResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group that the OMS workspace is attached to"
+      },
+      "defaultValue": "[resourceGroup().name]"
     }
 
 
@@ -166,8 +195,13 @@
     "apiVersion": "2015-06-15",
 
     "templateURLs": {
-      "storageAccount": "[concat(parameters('storageAccountTemplateBaseUrl'), '/storageaccount_', parameters('storageAccountMode'), '.json')]",
-      "vnet": "[concat(parameters('virtualNetworkTemplateBaseUrl'), '/vnet_', parameters('virtualNetworkMode'), '.json')]"
+      "storageAccount": "[concat(parameters('baseTemplateUrl'), '/arm-storage-account/storageaccount_', parameters('storageAccountMode'), '.json')]",
+      "vnet": "[concat(parameters('baseTemplateUrl'), '/arm-virtual-network/vnet_', parameters('virtualNetworkMode'), '.json')]",
+      "oms": "[concat(parameters('baseTemplateUrl'), '/arm-monitoring-agent/omsagent-linux-', parameters('enableMonitoring'), '.json')]",
+      "omsChefConfig": "[concat(parameters('baseTemplateUrl'), '/files/omsagent-chef-server.conf')]",
+      "scripts": {
+        "configureOMS": "[concat(parameters('baseTemplateUrl'), '/scripts/configure-chef-oms.sh')]"
+      }
     }
   },
   "resources": [
@@ -327,6 +361,45 @@
           "bootDiagnostics": {
             "enabled": "true",
             "storageUri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "OMSAgentSetup",
+      "apiVersion": "2016-02-01",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateURLs').oms]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "vmName": {
+            "value": "[parameters('vmName')]"
+          },
+          "workspaceId": {
+            "value": "[parameters('omsWorkspaceId')]"
+          },
+          "workspaceName": {
+            "value": "[parameters('omsWorkspaceName')]"
+          },
+          "scriptUrl": {
+            "value": "[variables('templateURLs').scripts.configureOMS]"
+          },
+          "omsChefConfigUrl": {
+            "value": "[variables('templateURLs').omsChefConfig]"
+          },
+          "omsResourceGroup": {
+            "value": "[parameters('omsResourceGroup')]"
           }
         }
       }

@@ -103,15 +103,7 @@
       "metadata": {
         "description": "Base URL for the templates that are to be used"
       },
-      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/"
-    },
-
-    "branch": {
-      "type": "string",
-      "metadata": {
-        "description": "The branch from which the templates should be retrieved"
-      },
-      "defaultValue": "master"
+      "defaultValue": "https://raw.githubusercontent.com/chef-partners/arm-templates/master/"
     },
 
     "automateLicense": {
@@ -197,10 +189,10 @@
     "apiVersion": "2015-06-15",
 
     "urls": {
-      "storageAccount": "[concat(parameters('templateBaseUrl'), parameters('branch'), '/arm-storage-account/storageaccount_', parameters('storageAccountNewOrExisting'), '.json')]",
-      "vnet": "[concat(parameters('templateBaseUrl'), parameters('branch'), '/arm-virtual-network/vnet_', parameters('virtualNetworkNewOrExisting'), '.json')]",
-      "publicIPAddress": "[concat(parameters('templateBaseUrl'), parameters('branch'), '/arm-public-ipaddress/publicipaddress_', parameters('publicIPNewOrExisting'), '.json')]",
-      "installAutomate": "[concat(parameters('templateBaseUrl'), parameters('branch'), '/scripts/install-automate.sh')]"
+      "storageAccount": "[concat(parameters('templateBaseUrl'), '/arm-storage-account/storageaccount_', parameters('storageAccountNewOrExisting'), '.json')]",
+      "vnet": "[concat(parameters('templateBaseUrl'), '/arm-virtual-network/vnet_', parameters('virtualNetworkNewOrExisting'), '.json')]",
+      "publicIPAddress": "[concat(parameters('templateBaseUrl'), '/arm-public-ipaddress/publicipaddress_', parameters('publicIPNewOrExisting'), '.json')]",
+      "installAutomate": "[concat(parameters('templateBaseUrl'), '/scripts/install-automate.sh')]"
     }
   },
   "resources": [
