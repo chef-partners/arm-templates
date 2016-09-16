@@ -33,7 +33,7 @@
     "storageAccountType": "Standard_LRS",
     "publicIPAddressType": "Dynamic",
     "vmStorageAccountContainerName": "vhds",
-    "vmSize": "Standard_A5",
+    "vmSize": "Standard_DS2_v2",
 
     "image": {
       "chef": {
