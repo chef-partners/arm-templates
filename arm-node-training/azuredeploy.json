@@ -169,7 +169,7 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "Microsoft.Resources/deployments/PublicIPAddressSetup",
-        "Microsoft.Resoutces/deployments/ChefNodesNSG"
+        "Microsoft.Resources/deployments/ChefNodesNSG"
       ],
       "properties": {
         "networkSecurityGroup": {
