@@ -173,7 +173,7 @@
       ],
       "properties": {
         "networkSecurityGroup": {
-          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', reference('ChefServersNSG').outputs.groupName.value)]"
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', reference('ChefNodesNSG').outputs.groupName.value)]"
         },
         "ipConfigurations": [
           {
