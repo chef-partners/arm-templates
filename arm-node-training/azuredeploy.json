@@ -16,7 +16,8 @@
       "allowedValues": [
         "windows",
         "linux"
-      ]
+      ],
+      "defaultValue": "windows"
     },
     "sequence": {
       "type": "string",
@@ -60,7 +61,8 @@
       "type": "string",
       "metadata": {
         "description": "Runlist to apply to the machine"
-      }
+      },
+      "defaultValue": "recipe[awesome_customers_windows]"
     }
   },
   "variables": {
