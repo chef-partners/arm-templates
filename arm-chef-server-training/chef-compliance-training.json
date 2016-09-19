@@ -342,7 +342,7 @@
           "computerName": "[variables('vm').compliance]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
-          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ',reference(variables('name').publicIp.chef).dnsSettings.fqdn))]"
+          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ',reference(variables('name').publicIp.compliance).dnsSettings.fqdn))]"
         },
         "storageProfile": {
           "imageReference": {
