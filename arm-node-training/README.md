@@ -65,7 +65,19 @@ $> cat .chef/acme-validator.pem | base64
 
 #### Windows
 
-In a PowerShell prompt run the following commands:
+_Method 1_
+
+This method uses the `base64` command bundled with ChefDK.
+
+```powershell
+PS > cd chef-repo
+PS > $validator_path = ".chef/acme-validator.pem"
+PS > chef exec cat $validator_path | chef exec base64 -w 0 | Set-Clipboard
+```
+
+_Method 2_
+
+If you wish to stay using Windows commands and .NET then use the following
 
 ```powershell
 PS > cd chef-repo
@@ -76,6 +88,7 @@ PS > [Convert]::ToBase64String($Bytes)
 ```
 
 ![Windows Base64](images/windows-base64.png)
+
 
 ### Sequence Numbers
 
