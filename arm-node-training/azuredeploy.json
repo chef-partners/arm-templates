@@ -68,7 +68,7 @@
   "variables": {
     "unique": "[uniquestring(subscription().subscriptionId, resourceGroup().id, parameters('vmPrefix'))]",
     "storageAccountName": "[variables('unique')]",
-    "vmName": "[concat(take(parameters('vmPrefix'), 8), '-', parameters('sequence'), '-', substring(variables('unique'), 0, 4))]",
+    "vmName": "[toLower(concat(take(parameters('vmPrefix'), 8), '-', parameters('sequence'), '-', substring(variables('unique'), 0, 4)))]",
     "nicName": "[concat(variables('vmName'), '-Nic')]",
     "addressPrefix": "10.0.0.0/16",
     "subnetName": "chefSubnet",
