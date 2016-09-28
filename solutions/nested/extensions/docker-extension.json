@@ -1,0 +1,60 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+
+     "vmName": {
+       "type": "string",
+       "metadata": {
+         "description": "VM Name for which the extension is being added"
+       }
+     },
+
+     "image": {
+       "type": "string",
+       "metadata": {
+         "description": "Name of the Docker Image to deploy"
+       }
+     },
+
+     "ports": {
+       "type": "array",
+       "metadata": {
+         "description": "Array of ports to expose on the Container"
+       }
+     }
+  },
+  "variables": {
+
+  },
+  "resources": [
+
+
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmName'), '/DockerExtension')]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+      ],
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "DockerExtension",
+        "typeHandlerVersion": "1.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "compose": {
+            "chef-orchestrator": {
+              "image": "[parameters('image')]",
+              "ports": "[parameters('ports')]"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+
+  }
+}

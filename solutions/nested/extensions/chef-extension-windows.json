@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the computer.  This will also be used as the DNS label prefix"
+      }
+    },
+    "computerName": {
+      "type": "string",
+      "metadata": {
+        "description": "The hostname of the machine, will be used as the node name"
+      }
+    },
+    "chefData": {
+      "type": "secureObject",
+      "metadata": {
+        "description": "Object containing all the information to communicate with the chef server"
+      }
+    }
+  },
+  "resources": [
+    {
+      "name": "[concat(parameters('vmName'),'/ChefExtension')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "properties": {
+        "publisher": "Chef.Bootstrap.WindowsAzure",
+        "type": "ChefClient",
+        "typeHandlerVersion": "1210.12",
+        "settings": {
+          "validation_key_format": "base64encoded",
+          "bootstrap_options": {
+            "chef_node_name": "[parameters('computerName')]",
+            "chef_server_url": "[parameters('chefData').serverUrl]",
+            "validation_client_name": "[parameters('chefData').validator.name]",
+            "node_ssl_verify_mode": "[parameters('chefData').node.sslVerifyMode]",
+            "environment": "[parameters('chefData').node.environment]"
+          },
+          "runlist": "[parameters('chefData').runlist]",
+          "client_rb": "[parameters('chefData').node.configuration]"
+        },
+        "protectedSettings": {
+          "validation_key": "[parameters('chefData').validator.key]"
+        }
+      }
+    }
+  ]
+}

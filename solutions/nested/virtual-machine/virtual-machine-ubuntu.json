@@ -1,0 +1,164 @@
+{  
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the VM as it will appear in Azure"
+      }
+    },
+
+    "computerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Hostname of the machine"
+      }
+    },
+
+    "vmSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the machine to create"
+      }
+    },
+
+    "adminUsername": {
+      "type": "string"
+    },
+
+    "adminPassword": {
+      "type": "securestring"
+    },
+
+    "storageAccountName": {
+      "type": "string"
+    },
+
+    "storageAccountContainerName": {
+      "type": "string"
+    },
+
+    "imageSku": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of Windows to use for the machine"
+      }
+    },
+
+    "nicRef": {
+      "type": "string",
+      "metadata": {
+        "description": "Reference string to the NIC for the machine"
+      }
+    },
+
+    "fqdn": {
+      "type": "string",
+      "metadata": {
+        "description": "FQDN of the machine to set"
+      },
+      "defaultValue": ""
+    }
+  },
+  "variables": {
+
+    "location": "[resourceGroup().location]",
+
+    "name": {
+      "vm": "[parameters('vmName')]",
+      "computer": "[parameters('computerName')]",
+      "sa": {
+        "name": "[parameters('storageAccountName')]",
+        "containerName": "[parameters('storageAccountContainerName')]"
+      },
+      "disk": {
+        "os": "[concat(parameters('computerName'), '-OSDisk')]",
+        "data": "[concat(parameters('computerName'), '-DataDisk')]"
+      }
+    },
+
+    "cloudHead": "#cloud-config\nmanage_etc_hosts: true\n\npackage_update: true\npackage_upgrade: false\n",
+
+    "ref": {
+      "nic": "[parameters('nicRef')]"
+    },
+
+    "vmSize": "[parameters('vmSize')]",
+
+    "apiVersions": {
+      "virtualMachines": "2015-06-15"
+    },
+
+    "image": {
+      "publisher": "canonical",
+      "offer": "ubuntuserver",
+      "sku": "[parameters('imageSku')]"
+    }
+
+  },
+  "resources": [
+
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('name').vm]",
+      "apiVersion": "[variables('apiVersions').virtualMachines]",
+      "location": "[variables('location')]",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('name').computer]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ', parameters('fqdn')))]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('image').publisher]",
+            "offer": "[variables('image').offer]",
+            "sku": "[variables('image').sku]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://', variables('name').sa.name,'.blob.core.windows.net/', variables('name').sa.containerName,'/',variables('name').disk.os,'.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "name": "datadisk1",
+              "diskSizeGB": "100",
+              "lun": 0,
+              "vhd": {
+                "uri": "[concat('http://', variables('name').sa.name, '.blob.core.windows.net/' ,variables('name').sa.containerName,'/',variables('name').disk.data,'.vhd')]"
+              },
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[variables('ref').nic]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "false",
+            "storageUri": "[concat('http://', variables('name').sa.name, '.blob.core.windows.net')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+
+  }
+}

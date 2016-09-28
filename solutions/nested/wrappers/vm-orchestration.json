@@ -1,0 +1,215 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Hostname for the machine, which will also be the Public FQDN name.  For Windows machines this must be 15 characters or less"
+      }
+    },
+
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username to be set on the machine, this is the name to be used for RDP access"
+      },
+      "defaultValue": "azure"
+    },
+
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password to be associated with the specified username"
+      }
+    },
+
+    "subnetRef": {
+      "type": "string",
+      "metadata": {
+        "description": "Reference to the subnet that the NIC should be connected to"
+      }
+    },
+
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the storage account in which the disks should be created"
+      }
+    },
+
+    "storageAccountContainerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the container within the storage account into which the disks will be stored"
+      },
+      "defaultValue": "vhds"
+    },
+
+    "vmSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the machine to create"
+      },
+      "defaultValue": "Standard_D1_v2"
+    },
+
+    "imageSku": {
+      "type": "string",
+      "metadata": {
+        "description": "Name SKU to deploy"
+      }
+    }
+  },
+
+  "variables": {
+
+    "location": "[resourceGroup().location]",
+
+    "name": {
+      "vm": "[concat(parameters('name'), '-VM')]",
+      "nic": "[concat(parameters('name'), '-NIC')]",
+      "publicIPAddress": "[concat(parameters('name'), '-PublicIP')]",
+      "dns": "[parameters('name')]",
+      "computer": "[parameters('name')]",
+      "extension": {
+        "chef": "[concat(parameters('name'), '-ChefExt')]"
+      },
+      "sa": {
+        "name": "[parameters('storageAccountName')]",
+        "containerName": "[parameters('storageAccountContainerName')]"
+      }
+    },
+
+    "ref": {
+      "subnet": "[parameters('subnetRef')]"
+    },
+
+    "vmSize": "[parameters('vmSize')]",
+
+    "image": {
+      "sku": "[parameters('imageSku')]"
+    },
+
+    "docker": {
+      "image": "ecolio/etcd",
+      "ports": [
+        "4001:4001",
+        "7001:7001"
+      ]
+    },
+
+    "urls": {
+      "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface.json')]",
+      "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-ubuntu.json'))]",
+      "dockerExtension": "[uri(deployment().properties.templateLink.uri, concat('../extensions/docker-extension-.json'))]"
+    },
+
+    "apiVersions": {
+      "deployments": "2016-02-01",
+      "networkInterfaces": "2015-06-15"
+    }
+  },
+
+  "resources": [
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').nic, '-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').networkInterface]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+            "nicName": {
+              "value": "[variables('name').nic]"
+            },
+            "subnetRef": {
+              "value": "[variables('ref').subnet]"
+            }    
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').vm, '-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').nic, '-Deployment')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').virtualMachine]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+            "vmName": {
+              "value": "[variables('name').vm]"
+            },
+            "computerName": {
+              "value": "[variables('name').computer]"
+            },
+            "vmSize": {
+              "value": "[variables('vmSize')]"
+            },
+            "adminUsername": {
+              "value": "[parameters('adminUsername')]"
+            },
+            "adminPassword": {
+              "value": "[parameters('adminPassword')]"
+            },
+            "storageAccountName": {
+              "value": "[variables('name').sa.name]"
+            },
+            "storageAccountContainerName": {
+              "value": "[variables('name').sa.containerName]"
+            },
+            "imageSku": {
+              "value": "[variables('image').sku]"
+            },
+            "nicRef": {
+              "value": "[reference(concat(variables('name').nic, '-Deployment')).outputs.ref.value]"
+            }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').extension.chef, '-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').dockerExtension]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+            "vmName": {
+              "value": "[variables('name').vm]"
+            },
+            "image": {
+              "value": "[variables('docker').image]"
+            },
+            "ports": {
+              "value": "[variables('docker').ports]"
+            }    
+        }
+      }
+    }
+
+  ],
+
+  "outputs": {
+
+  }
+}
