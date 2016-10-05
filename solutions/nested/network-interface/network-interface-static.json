@@ -20,8 +20,7 @@
       "type": "string",
       "metadata": {
         "description": "The static IP address to be assigned to the network card"
-      },
-      "defaultValue": ""
+      }
     }
   },
   "variables": {
@@ -53,10 +52,8 @@
           {
             "name": "ipconfig1",
             "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "publicIPAddress": {
-                "id": "[variables('ref').publicIPAddress]"
-              },
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[parameters('ipAddress')]",
               "subnet": {
                 "id": "[variables('ref').subnet]"
               }

@@ -71,6 +71,27 @@
 
     "chefServerUrl": {
       "type": "string"
+    },
+
+    "ipAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Static IP address to set on the machine"
+      }
+    },
+
+    "buildNode": {
+      "type": "object",
+      "metadata": {
+        "description": "Information about the build nodes"
+      }
+    },
+
+    "orchestrationServerIPAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Internal IP address of the orchestration server from which data can be retrieved"
+      }
     }
   },
 
@@ -108,8 +129,8 @@
     },
 
     "urls": {
-      "publicIPAddress": "[uri(deployment().properties.templateLink.uri, '../public-ipaddress/public-ipaddress-publicip.json')]",
-      "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface.json')]",
+      "publicIPAddress": "[uri(deployment().properties.templateLink.uri, '../public-ipaddress/public-ipaddress.json')]",
+      "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-static-publicip.json')]",
       "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-ubuntu.json'))]",
       "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/setup-ctl.sh'))]"
     },
@@ -173,6 +194,9 @@
             },
             "subnetRef": {
               "value": "[variables('ref').subnet]"
+            },
+            "ipAddress": {
+              "value": "[parameters('ipAddress')]"
             }    
         }
       }
@@ -182,6 +206,9 @@
       "type": "Microsoft.Resources/deployments",
       "name": "[concat(variables('name').vm, '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').nic, '-Deployment')]"
+      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -228,7 +255,7 @@
       "name": "[concat(variables('name').vm, '/InstallAutomateServer')]",
       "apiVersion": "2015-06-15",
       "dependsOn": [
-        "[concat('Microsoft.Resources/deployments', variables('name').vm, '-Deployment')]"
+        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
       ],
       "properties": {
         "publisher": "Microsoft.Azure.Extensions",
@@ -239,7 +266,7 @@
           "fileUris": [
             "[variables('urls').configurationScript]"
           ],
-          "commandToExecute": "[concat('./setup-ctl -m automate-install,automate-configure --automate-version \"', variables('automate').version, '\" -O \"http://10.0.0.4:4001\" -L \"', variables('automate').license, '\" -s \"', parameters('chefServerUrl'), '\"')]"
+          "commandToExecute": "[concat('./setup-ctl.sh -m automate-install,automate-configure,automate-build-nodes --automate-version \"', variables('automate').version, '\" -O \"', parameters('orchestrationServerIPAddress'), ':4001\" -L \"', variables('automate').license, '\" -s \"', parameters('chefServerUrl'), '\" -u \"', variables('automate').username,'\" -f \"', variables('automate').fullname, '\" -p \"', variables('automate').password, '\" -e \"', variables('automate').emailaddress, '\" --build-node-prefix \"', parameters('buildNode').nameprefix, '\" --build-node-count ', parameters('buildNode').count, ' --chefdk-version \"', variables('automate').chefdkversion, '\"')]"
         }
       },
       "location": "[resourceGroup().location]"
@@ -251,6 +278,14 @@
     "fqdn": {
       "type": "string",
       "value": "[reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value]"
+    },
+    "ssh": {
+      "type": "string",
+      "value": "[concat('ssh azure@', reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value)]"
+    },
+    "url": {
+      "type": "string",
+      "value": "[concat('https://', reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value, '/e/Delivery')]"
     }
   }
 }

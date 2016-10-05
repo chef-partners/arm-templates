@@ -16,6 +16,9 @@
     },
     "subnetPrefix": {
       "type": "string"
+    },
+    "securityGroupRef": {
+      "type": "string"
     }
   },
   "variables" : {
@@ -38,7 +41,10 @@
                     {
                         "name": "[parameters('subnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('subnetPrefix')]"
+                            "addressPrefix": "[parameters('subnetPrefix')]",
+                            "networkSecurityGroup": {
+                              "id": "[parameters('securityGroupRef')]"
+                            }
                         }
                     }
                 ]

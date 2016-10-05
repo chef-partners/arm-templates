@@ -60,6 +60,13 @@
       "metadata": {
         "description": "Name SKU to deploy"
       }
+    },
+
+    "ipAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Static IP address to set on the machine"
+      }
     }
   },
 
@@ -74,7 +81,7 @@
       "dns": "[parameters('name')]",
       "computer": "[parameters('name')]",
       "extension": {
-        "chef": "[concat(parameters('name'), '-ChefExt')]"
+        "docker": "[concat(parameters('name'), '-DockerExt')]"
       },
       "sa": {
         "name": "[parameters('storageAccountName')]",
@@ -93,7 +100,7 @@
     },
 
     "docker": {
-      "image": "ecolio/etcd",
+      "image": "elcolio/etcd",
       "ports": [
         "4001:4001",
         "7001:7001"
@@ -101,9 +108,10 @@
     },
 
     "urls": {
-      "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface.json')]",
+      "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-static.json')]",
       "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-ubuntu.json'))]",
-      "dockerExtension": "[uri(deployment().properties.templateLink.uri, concat('../extensions/docker-extension-.json'))]"
+      "dockerExtension": "[uri(deployment().properties.templateLink.uri, concat('../extensions/docker-extension.json'))]",
+      "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/setup-ctl.sh'))]"
     },
 
     "apiVersions": {
@@ -130,6 +138,9 @@
             },
             "subnetRef": {
               "value": "[variables('ref').subnet]"
+            },
+            "ipAddress": {
+              "value": "[parameters('ipAddress')]"
             }    
         }
       }
@@ -182,7 +193,7 @@
 
     {
       "type": "Microsoft.Resources/deployments",
-      "name": "[concat(variables('name').extension.chef, '-Deployment')]",
+      "name": "[concat(variables('name').extension.docker, '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
       "dependsOn": [
         "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
@@ -205,6 +216,28 @@
             }    
         }
       }
+    },
+
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('name').vm, '/OrchestrationSetup')]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').extension.docker, '-Deployment')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('urls').configurationScript]"
+          ],
+          "commandToExecute": "[concat('./setup-ctl.sh -m orchestration')]"
+        }
+      },
+      "location": "[resourceGroup().location]"
     }
 
   ],

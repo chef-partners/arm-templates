@@ -32,6 +32,26 @@
       "type": "securestring"
     },
 
+    "sshPublicKey": {
+      "defaultValue": "",
+      "metadata": {
+        "description": "Administrator SSH public key"
+      },
+      "type": "string"
+    },
+
+    "authenticationType": {
+      "allowedValues": [
+        "password",
+        "sshPublicKey"
+      ],
+      "defaultValue": "password",
+      "metadata": {
+        "description": "Authentication type"
+      },
+      "type": "string"
+    },
+
     "storageAccountName": {
       "type": "string"
     },
@@ -79,7 +99,36 @@
       }
     },
 
-    "cloudHead": "#cloud-config\nmanage_etc_hosts: true\n\npackage_update: true\npackage_upgrade: false\n",
+    "customData": "[concat('#cloud-config\nmanage_etc_hosts: true\n\npackage_update: true\npackage_upgrade: false\nfqdn: ', parameters('fqdn'))]",
+
+    "osProfile": "[variables(concat('osprofile', parameters('authenticationType')))]",
+
+    "osProfilepassword": {
+      "adminPassword": "[parameters('adminPassword')]",
+      "adminUsername": "[parameters('adminUsername')]",
+      "computerName": "[variables('name').computer]",
+      "customData": "[base64(variables('customData'))]"
+    },
+
+    "osProfilesshPublicKey": {
+      "adminUsername": "[parameters('adminUsername')]",
+      "adminPassword": "[parameters('adminPassword')]",
+      "computerName": "[variables('name').computer]",
+      "customData": "[base64(variables('customData'))]",
+      "linuxConfiguration": {
+        "disablePasswordAuthentication": "false",
+        "ssh": {
+          "publicKeys": [
+            {
+              "keyData": "[parameters('sshPublicKey')]",
+              "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]"
+            }
+          ]
+        }
+      }
+    },
+
+    
 
     "ref": {
       "nic": "[parameters('nicRef')]"
@@ -109,12 +158,7 @@
         "hardwareProfile": {
           "vmSize": "[variables('vmSize')]"
         },
-        "osProfile": {
-          "computerName": "[variables('name').computer]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]",
-          "customData": "[base64(concat(variables('cloudHead'), 'fqdn: ', parameters('fqdn')))]"
-        },
+        "osProfile": "[variables('osprofile')]",
         "storageProfile": {
           "imageReference": {
             "publisher": "[variables('image').publisher]",
