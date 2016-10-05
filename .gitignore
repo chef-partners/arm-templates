@@ -6,3 +6,4 @@
 .direnv
 .ruby-version
 *.parameters.local.json
+local

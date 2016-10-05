@@ -1,0 +1,45 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "prefix": {
+      "value": ""
+    },
+    "adminPassword": {
+      "value": ""
+    },
+    "chefVersion": {
+      "value": "12.9.0"
+    },
+    "chefDKVersion": {
+      "value": "0.18.30"
+    },
+    "userName": {
+      "value": ""
+    },
+    "userFullname": {
+      "value": ""
+    },
+    "userEmailaddress": {
+      "value": ""
+    },
+    "userPassword": {
+      "value": ""
+    },
+    "chefOrg": {
+      "value": ""
+    },
+    "chefOrgDescription": {
+      "value": ""
+    },
+    "complianceVersion": {
+      "value": "1.5.14"
+    },
+    "automateVersion": {
+      "value": "0.5.370"
+    },
+    "automateLicense": {
+      "value": ""
+    }
+  }
+}

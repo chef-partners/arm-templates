@@ -1,0 +1,280 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Hostname for the machine, which will also be the Public FQDN name.  For Windows machines this must be 15 characters or less"
+      }
+    },
+
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username to be set on the machine, this is the name to be used for RDP access"
+      },
+      "defaultValue": "azure"
+    },
+
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password to be associated with the specified username"
+      }
+    },
+
+    "subnetRef": {
+      "type": "string",
+      "metadata": {
+        "description": "Reference to the subnet that the NIC should be connected to"
+      }
+    },
+
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the storage account in which the disks should be created"
+      }
+    },
+
+    "storageAccountContainerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the container within the storage account into which the disks will be stored"
+      },
+      "defaultValue": "vhds"
+    },
+
+    "vmSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the machine to create"
+      },
+      "defaultValue": "Standard_D1_v2"
+    },
+
+    "imageSku": {
+      "type": "string",
+      "metadata": {
+        "description": "Name SKU to deploy"
+      }
+    },
+
+    "complianceServerAttributes": {
+      "type": "secureObject",
+      "metadata": {
+        "description": "Chef Server attributes that are used to the configure the server"
+      }
+    },
+
+    "ipAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Static IP address to set on the machine"
+      }
+    },
+
+    "orchestrationServerIPAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Internal IP address of the orchestration server from which data can be retrieved"
+      }
+    }
+  },
+
+  "variables": {
+
+    "location": "[resourceGroup().location]",
+
+    "name": {
+      "vm": "[concat(parameters('name'), '-VM')]",
+      "nic": "[concat(parameters('name'), '-NIC')]",
+      "publicIPAddress": "[concat(parameters('name'), '-PublicIP')]",
+      "dns": "[parameters('name')]",
+      "computer": "[parameters('name')]",
+      "extension": {
+        "chef": "[concat(parameters('name'), '-ChefExt')]"
+      },
+      "sa": {
+        "name": "[parameters('storageAccountName')]",
+        "containerName": "[parameters('storageAccountContainerName')]"
+      }
+    },
+
+    "ref": {
+      "subnet": "[parameters('subnetRef')]"
+    },
+
+    "type": {
+      "publicIPAddress": "Dynamic"
+    },
+
+    "vmSize": "[parameters('vmSize')]",
+
+    "image": {
+      "sku": "[parameters('imageSku')]"
+    },
+
+    "urls": {
+      "publicIPAddress": "[uri(deployment().properties.templateLink.uri, '../public-ipaddress/public-ipaddress.json')]",
+      "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-static-publicip.json')]",
+      "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-ubuntu.json'))]",
+      "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/setup-ctl.sh'))]"
+    },
+
+    "apiVersions": {
+      "deployments": "2016-02-01",
+      "networkInterfaces": "2015-06-15"
+    },
+
+    "compliance": "[parameters('complianceServerAttributes')]"
+  },
+
+  "resources": [
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').publicIPAddress, '-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').publicIPAddress]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+            "location": {
+              "value": "[variables('location')]"
+            },
+            "publicIPAddressName": {
+              "value": "[variables('name').publicIPAddress]"
+            },
+            "publicIPAddressType": {
+              "value": "[variables('type').publicIPAddress]"
+            },
+            "dnsLabelPrefix": {
+              "value": "[variables('name').dns]"
+            }         
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').nic, '-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').publicIPAddress, '-Deployment')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').networkInterface]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+            "nicName": {
+              "value": "[variables('name').nic]"
+            },
+            "publicIPAddressRef": {
+              "value": "[reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.publicIpId.value]"
+            },
+            "subnetRef": {
+              "value": "[variables('ref').subnet]"
+            },
+            "ipAddress": {
+              "value": "[parameters('ipAddress')]"
+            }    
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').vm, '-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').nic, '-Deployment')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').virtualMachine]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+            "vmName": {
+              "value": "[variables('name').vm]"
+            },
+            "computerName": {
+              "value": "[variables('name').computer]"
+            },
+            "vmSize": {
+              "value": "[variables('vmSize')]"
+            },
+            "adminUsername": {
+              "value": "[parameters('adminUsername')]"
+            },
+            "adminPassword": {
+              "value": "[parameters('adminPassword')]"
+            },
+            "storageAccountName": {
+              "value": "[variables('name').sa.name]"
+            },
+            "storageAccountContainerName": {
+              "value": "[variables('name').sa.containerName]"
+            },
+            "imageSku": {
+              "value": "[variables('image').sku]"
+            },
+            "nicRef": {
+              "value": "[reference(concat(variables('name').nic, '-Deployment')).outputs.ref.value]"
+            },
+            "fqdn": {
+              "value": "[reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value]"
+            }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('name').vm, '/InstallComplianceServer')]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('urls').configurationScript]"
+          ],
+          "commandToExecute": "[concat('./setup-ctl.sh -m compliance-install,compliance-configure --compliance-version \"', variables('compliance').version, '\" -O \"', parameters('orchestrationServerIPAddress'), ':4001\" -u \"', variables('compliance').username, '\" -p \"', variables('compliance').password, '\"')]"
+        }
+      },
+      "location": "[resourceGroup().location]"
+    }
+
+  ],
+
+  "outputs": {
+    "fqdn": {
+      "type": "string",
+      "value": "[reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value]"
+    },
+    "ssh": {
+      "type": "string",
+      "value": "[concat('ssh azure@', reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value)]"
+    },
+    "url": {
+      "type": "string",
+      "value": "[concat('https://', reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value)]"
+    }
+  }
+}

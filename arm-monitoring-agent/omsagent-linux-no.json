@@ -13,6 +13,25 @@
     },
     "workspaceName": {
       "type": "string"
+    },
+    "omsChefConfigUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URl to the configuration file for OMS for Chef"
+      }
+    },
+    "omsChefConfigUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URl to the configuration file for OMS for Chef"
+      }
+    },
+    "omsResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group that the OMS workspace is attached to"
+      },
+      "defaultValue": "[resourceGroup().name]"
     }
   },
   "variables": {
