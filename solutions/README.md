@@ -78,6 +78,22 @@ For the two passwords in the parameters it is recommended that they are randomly
  - Linux / MacOS X - `openssl rand -base64 12`
  - Windows PowerShell - `-join (33..126 | ForEach-Object {[char]$_} | Get-Random -Count 12)`
 
+#### IP addresses
+
+The default JSON object for the IP addresses is
+
+```json
+{
+  "orchestration": "10.0.0.4",
+  "chefserver": "10.0.0.5",
+  "automateserver": "10.0.0.6",
+  "complianceserver": "10.0.0.7",
+  "buildnodestart": "10.0.0.8"
+}
+```
+
+A new complete object can be specified in parameters.
+
 ### Deployment
 
 In order to use the template a parameters file needs to be populated, use the dist one that has been added to this folder.
