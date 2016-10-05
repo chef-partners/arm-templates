@@ -25,7 +25,7 @@ The internal IP addresses and subnet are specified as part of the template.  The
 The numbers in red in the above network diagram show in what order the deployment within Azure occurs and therefore the dependencies in the template.
 
 | Step | Description                                                                                                                                                      |
-|------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|:-----|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1    | Orchestration server is deployed, this is the first machine and all machines wait for it                                                                         |
 | 2    | Chef Server and build nodes are started in parallel                                                                                                              |
 | 3    | Automate Server and Compliance server start after the Chef Server has completed.  The Automate server has an additional dependency on the build nodes completion |
@@ -34,28 +34,28 @@ The numbers in red in the above network diagram show in what order the deploymen
 
 The parameters that are required are detailed in the following table.  A skeleton version of this file is available to edit called `automatecluster.parameters.dist.json`.
 
-| Parameter | Description | Mandatory? | Default Value |
-|--|--|--|--|
-| prefix | A prefix that is applied to machines that are created with the template | yes | |
-| adminUsername | Login username for SSH | yes | azure |
-| adminPassword | Password to be associated with the specified username | yes | |
-| chefVersion | Version of chef to install | no | |
-| chefDKVersion | Version of ChefDK to download for the bootstrap of the build nodes | no | |
-| complianceVersion | Version of the Compliance software to install | no | |
-| automateVersion | Version of Chef Automate to install | no | |
-| userName | User name to add to all the Chef components | yes | |
-| userPassword | Password to associate with the specified userName | yes | |
-| userEmailaddress | Email address for the new user | yes | |
-| userFullname | Fullname of the new user | yes | |
-| chefOrg | Short name of the organisation to create on the Chef Server | yes | |
-| chefOrgDescription | Long name for the organisation | yes | | 
-| automateLicense | Base64 encoded version of the Automate license to use | yes | |
-| networkVNetSize | Size of the network on the virtual network | no | 10.0.0.0/24 |
-| networkSubnetSize | Size of the subnet | no | 10.0.0.0/28 |
-| ipAddresses | JSON object specifing the static internal IP addresses for the servers | no | see note |
-| shortUniqueLength | The number of charactets from the storage account to append to the computer name | no | 4 |
-| storageAccountType | Type of storage account to create | no | Standard_LRS |
-| buildNodeCount | Number of build nodes to created and configure | no | 1 |
+| Parameter          | Description                                                                      | Mandatory? | Default Value |
+|:-------------------|:---------------------------------------------------------------------------------|:-----------|:--------------|
+| prefix             | A prefix that is applied to machines that are created with the template          | yes        |               |
+| adminUsername      | Login username for SSH                                                           | yes        | azure         |
+| adminPassword      | Password to be associated with the specified username                            | yes        |               |
+| chefVersion        | Version of chef to install                                                       | no         |               |
+| chefDKVersion      | Version of ChefDK to download for the bootstrap of the build nodes               | no         |               |
+| complianceVersion  | Version of the Compliance software to install                                    | no         |               |
+| automateVersion    | Version of Chef Automate to install                                              | no         |               |
+| userName           | User name to add to all the Chef components                                      | yes        |               |
+| userPassword       | Password to associate with the specified userName                                | yes        |               |
+| userEmailaddress   | Email address for the new user                                                   | yes        |               |
+| userFullname       | Fullname of the new user                                                         | yes        |               |
+| chefOrg            | Short name of the organisation to create on the Chef Server                      | yes        |               |
+| chefOrgDescription | Long name for the organisation                                                   | yes        |               |
+| automateLicense    | Base64 encoded version of the Automate license to use                            | yes        |               |
+| networkVNetSize    | Size of the network on the virtual network                                       | no         | 10.0.0.0/24   |
+| networkSubnetSize  | Size of the subnet                                                               | no         | 10.0.0.0/28   |
+| ipAddresses        | JSON object specifing the static internal IP addresses for the servers           | no         | see note      |
+| shortUniqueLength  | The number of charactets from the storage account to append to the computer name | no         | 4             |
+| storageAccountType | Type of storage account to create                                                | no         | Standard_LRS  |
+| buildNodeCount     | Number of build nodes to created and configure                                   | no         | 1             |
 
 
 **NB**: For the version parameters they are mandatory if the `scratch` template is being used.
@@ -64,14 +64,14 @@ There is a distinction between the name of the virtual machine as seen in the Az
 
 So if the `prefix` was set to `foo` and the generated storage account name was `enpf377f3xlj2` the names for the Chef server would be as follows:
 
-| Name | Description |
-|-|-|
-| foo-chef-enpf | Computer name |
-| foo-chef-enpf-VM | Name of the machine in the Azure Portal |
-| foo-chef-enpf-NIC | Network card name |
+| Name                   | Description                                  |
+|:-----------------------|:---------------------------------------------|
+| foo-chef-enpf          | Computer name                                |
+| foo-chef-enpf-VM       | Name of the machine in the Azure Portal      |
+| foo-chef-enpf-NIC      | Network card name                            |
 | foo-chef-enpf-PublicIp | Name of the Public IP address of the machine |
 
-The computer name is also used as the DNS prefix label for the FQDN. 
+The computer name is also used as the DNS prefix label for the FQDN.
 
 For the two passwords in the parameters it is recommended that they are randomly generated, e.g.
 
@@ -118,19 +118,19 @@ There is a one large Bash script that is used by every machine to bootstrap the 
 
 This script is called `nested\scripts\setup-ctl.sh`.  The following operations are available in the script:
 
-| Mode | Description |
-|-|-|
-| orchestration | Create the SSH key pair for the build nodes |
-| chef-install | Install Chef Server from package |
-| chef-configure | Configure the Chef server with the specified Organization and the one required for Automate as well as the associated users.  It will also install `chef-manage`, `chef-gate` and `chef-push-jobs`.  All the configuration for integration with Compliance is configured as well |
-| chef-oms | Configure the Chef Server for OMS monitoring |
-| automate-install | Install Automate Server from package |
-| automate-configure | Configure the Automate server with the delivery organisation created on the Chef server (using `etcd` to get the keys) and the specified Licence key |
-| automate-oms | Configure the Automate Server for OMS monitoring |
-| automate-build-nodes | Bootstrap the build nodes into the Automate Cluster.  Uses the SSH keys that were generated in the `orchestration` mode |
-| compliance-install | Install Compliance Server from package |
-| compliance-configure | Configure the compliance server for oAuth with the Chef Server.  This also configures the policies for access with the `audit` cookbook |
-| build-node | Create the `build` user and put the SSH public key in place so that the Automate server can access it.  Also creates a password less sudo for the user |
+| Mode                 | Description                                                                                                                                                                                                                                                                      |
+|:---------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| orchestration        | Create the SSH key pair for the build nodes                                                                                                                                                                                                                                      |
+| chef-install         | Install Chef Server from package                                                                                                                                                                                                                                                 |
+| chef-configure       | Configure the Chef server with the specified Organization and the one required for Automate as well as the associated users.  It will also install `chef-manage`, `chef-gate` and `chef-push-jobs`.  All the configuration for integration with Compliance is configured as well |
+| chef-oms             | Configure the Chef Server for OMS monitoring                                                                                                                                                                                                                                     |
+| automate-install     | Install Automate Server from package                                                                                                                                                                                                                                             |
+| automate-configure   | Configure the Automate server with the delivery organisation created on the Chef server (using `etcd` to get the keys) and the specified Licence key                                                                                                                             |
+| automate-oms         | Configure the Automate Server for OMS monitoring                                                                                                                                                                                                                                 |
+| automate-build-nodes | Bootstrap the build nodes into the Automate Cluster.  Uses the SSH keys that were generated in the `orchestration` mode                                                                                                                                                          |
+| compliance-install   | Install Compliance Server from package                                                                                                                                                                                                                                           |
+| compliance-configure | Configure the compliance server for oAuth with the Chef Server.  This also configures the policies for access with the `audit` cookbook                                                                                                                                          |
+| build-node           | Create the `build` user and put the SSH public key in place so that the Automate server can access it.  Also creates a password less sudo for the user                                                                                                                           |
 
 ### Servers
 
@@ -139,6 +139,3 @@ This script is called `nested\scripts\setup-ctl.sh`.  The following operations a
 This server runs the Docker Engine and installs an `etcd` container.  This is what provides a REST based API for storing keys and secrets that other machines in the cluster require.  This is why the Orchestration server is the first machine to be built so it is in place before the other machines are deployed.
 
 Once the Docker container has been deployed the SSH keys are generated for the build nodes and added to the `etcd` store.  This is so that they are in place for when the build servers are deployed and when the Automate server bootstraps the build nodes.
-
-
-
