@@ -266,7 +266,7 @@
           "fileUris": [
             "[variables('urls').configurationScript]"
           ],
-          "commandToExecute": "[concat('./setup-ctl.sh -m automate-install,automate-configure,automate-build-nodes --automate-version \"', variables('automate').version, '\" -O \"', parameters('orchestrationServerIPAddress'), ':4001\" -L \"', variables('automate').license, '\" -s \"', parameters('chefServerUrl'), '\" -u \"', variables('automate').username,'\" -f \"', variables('automate').fullname, '\" -p \"', variables('automate').password, '\" -e \"', variables('automate').emailaddress, '\" --build-node-prefix \"', parameters('buildNode').nameprefix, '\" --build-node-count ', parameters('buildNode').count, ' --chefdk-version \"', variables('automate').chefdkversion, '\"')]"
+          "commandToExecute": "[concat('./setup-ctl.sh -m automate-install,automate-configure,automate-build-nodes --automate-version \"', variables('automate').version, '\" -O \"', parameters('orchestrationServerIPAddress'), ':4001\" -L \"', variables('automate').license, '\" -s \"', parameters('chefServerUrl'), '\" -u \"', variables('automate').username,'\" -f \"', variables('automate').fullname, '\" -p \"', variables('automate').password, '\" -e \"', variables('automate').emailaddress, '\" -k \"', variables('automate').sshpublickey, '\" --build-node-prefix \"', parameters('buildNode').nameprefix, '\" --build-node-count ', parameters('buildNode').count, ' --chefdk-version \"', variables('automate').chefdkversion, '\"')]"
         }
       },
       "location": "[resourceGroup().location]"

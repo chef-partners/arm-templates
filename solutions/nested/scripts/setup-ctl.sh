@@ -25,6 +25,7 @@ CHEF_USER_FULLNAME=""
 
 # Password for the Chef user
 CHEF_USER_PASSWORD=""
+USER_PUBLICKEY=""
 
 # Email address for the new user
 CHEF_USER_EMAILADDRESS=""
@@ -219,6 +220,11 @@ do
     -p|--password)
       shift
       CHEF_USER_PASSWORD="$1"
+    ;;
+
+    -k|--publickey)
+      shift
+      USER_PUBLICKEY="$1"
     ;;
 
     -e|--email)
@@ -621,7 +627,11 @@ EOH
         executeCmd $cmd
 
         # Create the user that has been specified
-        cmd=$(printf 'delivery-ctl create-user Delivery %s --password %s --roles admin' $CHEF_USER_NAME $CHEF_USER_PASSWORD)
+        # Save the publickey to a file
+        cmd=$(printf "echo '`echo $USER_PUBLICKEY | base64 -d`' > user.pub.key")
+        executeCmd $cmd
+
+        cmd=$(printf 'delivery-ctl create-user Delivery %s --password %s --roles admin --ssh-pub-key-file $PWD/user.pub.key' $CHEF_USER_NAME $CHEF_USER_PASSWORD)
         executeCmd $cmd
       fi
 

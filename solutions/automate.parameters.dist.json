@@ -26,6 +26,9 @@
     "userPassword": {
       "value": ""
     },
+    "userSSHPublicKey": {
+      "value": ""
+    },
     "chefOrg": {
       "value": ""
     },

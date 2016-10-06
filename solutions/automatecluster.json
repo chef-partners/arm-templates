@@ -115,6 +115,13 @@
       "defaultValue": ""
     },
 
+    "userSSHPublicKey": {
+      "type": "string",
+      "metadata": {
+        "description": "Base64 encoded SSH public key for the user being added to the Automate Server.  This is NOT the SSH key that would be configured for SSH access into the servers"
+      }
+    },
+
     "chefOrg": {
       "type": "string",
       "metadata": {
@@ -198,6 +205,7 @@
       "fullname": "[parameters('userFullname')]",
       "password": "[parameters('userPassword')]",
       "emailaddress": "[parameters('userEmailaddress')]",
+      "sshpublickey": "[parameters('userSSHPublicKey')]",
       "license": "[parameters('automateLicense')]",
       "chefdkversion": "[parameters('chefDKVersion')]"
     },
