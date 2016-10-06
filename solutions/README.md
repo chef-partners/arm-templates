@@ -45,7 +45,7 @@ The parameters that are required are detailed in the following table.  A skeleto
 | automateVersion    | Version of Chef Automate to install                                              | no         |               |
 | userName           | User name to add to all the Chef components                                      | yes        |               |
 | userPassword       | Password to associate with the specified userName                                | yes        |               |
-| userSSHPublicKey   | Public key to associate with the user on the Automate server.  This is NOT for ssh access | yes | |
+| userSSHPublicKey   | Base64 encoded SSH Public key to associate with the user on the Automate server.  This is NOT for ssh access | yes | |
 | userEmailaddress   | Email address for the new user                                                   | yes        |               |
 | userFullname       | Fullname of the new user                                                         | yes        |               |
 | chefOrg            | Short name of the organisation to create on the Chef Server                      | yes        |               |
