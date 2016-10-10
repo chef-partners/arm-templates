@@ -160,6 +160,42 @@
         "description": "Number of build nodes that are required for the deployment"
       },
       "defaultValue": 1
+    },
+
+    "enableMonitoring": {
+      "type": "string",
+      "metadata": {
+        "description": "State whether to enable OMS monoitoring on the Automate Cluster.  Default: No"
+      },
+      "defaultValue": "no",
+      "allowedValues": [
+        "yes",
+        "no"
+      ]
+    },
+
+    "omsWorkspaceId": {
+      "type": "string",
+      "metadata": {
+        "description": "ID of the OMS workspace to write logs to"
+      },
+      "defaultValue": ""
+    },
+
+    "omsWorkspaceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the workspace"
+      },
+      "defaultValue": ""
+    },
+
+    "omsResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group that the OMS workspace is attached to"
+      },
+      "defaultValue": "[resourceGroup().name]"
     }
   },
   "variables": {
@@ -214,6 +250,16 @@
       "version": "[parameters('complianceVersion')]",
       "username": "[parameters('userName')]",
       "password": "[parameters('userPassword')]"
+    },
+
+    "oms": {
+      "enable": "[parameters('enableMonitoring')]",
+      "baseUrl": "[uri(deployment().properties.templateLink.uri, 'nested/files')]",
+      "workspace": {
+        "id": "[parameters('omsWorkspaceId')]",
+        "name": "[parameters('omsWorkspaceName')]"
+      },
+      "resourceGroupName": "[parameters('omsResourceGroup')]"
     },
 
     "networks": {
@@ -409,6 +455,9 @@
           },
           "orchestrationServerIPAddress": {
             "value": "[parameters('ipAddresses').orchestration]"
+          },
+          "omsAttributes": {
+            "value": "[variables('oms')]"
           }
         }
       }
@@ -457,6 +506,9 @@
           },
           "orchestrationServerIPAddress": {
             "value": "[parameters('ipAddresses').orchestration]"
+          },
+          "omsAttributes": {
+            "value": "[variables('oms')]"
           }
         }
       }
@@ -512,6 +564,9 @@
           },
           "orchestrationServerIPAddress": {
             "value": "[parameters('ipAddresses').orchestration]"
+          },
+          "omsAttributes": {
+            "value": "[variables('oms')]"
           }
         }
       }
@@ -560,6 +615,9 @@
           },
           "orchestrationServerIPAddress": {
             "value": "[parameters('ipAddresses').orchestration]"
+          },
+          "omsAttributes": {
+            "value": "[variables('oms')]"
           }
         }
       }

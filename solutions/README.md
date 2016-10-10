@@ -30,6 +30,10 @@ The numbers in red in the above network diagram show in what order the deploymen
 | 2    | Chef Server and build nodes are started in parallel                                                                                                              |
 | 3    | Automate Server and Compliance server start after the Chef Server has completed.  The Automate server has an additional dependency on the build nodes completion |
 
+OMS support is now available in the template.  This means that the standard metrics from the Chef, Automate and Compliance servers are displayed in a nominated OMS Dashboard.  In addition Visibility data from the Automate Server is sent to the dashboard for charting purposes.
+
+Enabling OMS Monitoring is optional, and by default is turned off.
+
 ### Parameters
 
 The parameters that are required are detailed in the following table.  A skeleton version of this file is available to edit called `automatecluster.parameters.dist.json`.
@@ -50,6 +54,10 @@ The parameters that are required are detailed in the following table.  A skeleto
 | userFullname       | Fullname of the new user                                                         | yes        |               |
 | chefOrg            | Short name of the organisation to create on the Chef Server                      | yes        |               |
 | chefOrgDescription | Long name for the organisation                                                   | yes        |               |
+| enableMonitoring | State whether OMS monitoring should be enabled | no | no |
+| omsWorkspaceId | ID of the OMS workspace to send data to | no | |
+| omsWorkspaceName | The name of the workspace.  This is used to determine the key to access the workspace | no | |
+| omsResourceGroup | The resource group in which the OMS Dashboard has been configured | no | resourceGroup().location |
 | automateLicense    | Base64 encoded version of the Automate license to use                            | yes        |               |
 | networkVNetSize    | Size of the network on the virtual network                                       | no         | 10.0.0.0/24   |
 | networkSubnetSize  | Size of the subnet                                                               | no         | 10.0.0.0/28   |
@@ -60,6 +68,8 @@ The parameters that are required are detailed in the following table.  A skeleto
 
 
 **NB**: For the version parameters they are mandatory if the `scratch` template is being used.
+
+**NB**: When the `enableMonitoring` parameter is set to `yes` then all the `oms*` parameters become mandatory.
 
 There is a distinction between the name of the virtual machine as seen in the Azure Portal and the hostname of the computer.  This is because they can be more descriptive in the portal.  The name that is generated is based on the given `prefix` the type of the machine and the first 4 characters of the storage account that is created for the deployment.
 

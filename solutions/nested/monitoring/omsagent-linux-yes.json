@@ -1,0 +1,62 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string"
+    },
+    "vmName": {
+      "type": "string"
+    },
+    "omsAttributes": {
+      "type": "secureObject"
+    },
+    "serverType": {
+      "type": "string",
+      "metadata": {
+        "description": "The type of server being created, e.g. chef, automate or compliance.  This is so that the commandMode can be set on the output"
+      },
+      "allowedValues": [
+        "",
+        "chef",
+        "automate",
+        "compliance"
+      ],
+      "defaultValue": ""
+    }
+  },
+  "variables": {
+    "apiVersion": "2015-06-15"
+  },
+  "resources": [
+
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmName'), '/Microsoft.EnterpriseCloud.Monitoring')]",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+        "type": "OmsAgentForLinux",
+        "typeHandlerVersion": "1.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "workspaceId": "[parameters('omsAttributes').workspace.id]"
+        },
+        "protectedSettings": {
+          "workspaceKey": "[listKeys(resourceId(parameters('omsAttributes').resourceGroupName, 'Microsoft.OperationalInsights/workspaces', parameters('omsAttributes').workspace.name), '2015-03-20').primarySharedKey]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "commandMode": {
+      "type": "string",
+      "value": "[concat(',', parameters('serverType'), '-oms')]"
+    },
+    "commandArgument": {
+      "type": "string",
+      "value": "[concat(' --oms-baseurl \"', parameters('omsAttributes').baseUrl, '\"')]"
+    }
+  }
+}

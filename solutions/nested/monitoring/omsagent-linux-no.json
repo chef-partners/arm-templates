@@ -1,0 +1,41 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string"
+    },
+    "vmName": {
+      "type": "string"
+    },
+    "omsAttributes": {
+      "type": "secureObject"
+    },
+    "serverType": {
+      "type": "string",
+      "metadata": {
+        "description": "The type of server being created, e.g. chef, automate or compliance.  This is so that the commandMode can be set on the output"
+      },
+      "allowedValues": [
+        "",
+        "chef",
+        "automate",
+        "compliance"
+      ],
+      "defaultValue": ""
+    }
+  },
+  "variables": {
+  },
+  "resources": [],
+  "outputs": {
+    "commandMode": {
+      "type": "string",
+      "value": ""
+    },
+    "commandArgument": {
+      "type": "string",
+      "value": ""
+    }
+  }
+}

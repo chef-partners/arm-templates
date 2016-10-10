@@ -85,6 +85,13 @@
       "metadata": {
         "description": "Internal IP address of the orchestration server from which data can be retrieved"
       }
+    },
+
+    "omsAttributes": {
+      "type": "secureObject",
+      "metadata": {
+        "description": "Object detailing the workspace id and key to configure OMS on the machine"
+      }
     }
   },
 
@@ -99,7 +106,7 @@
       "dns": "[parameters('name')]",
       "computer": "[parameters('name')]",
       "extension": {
-        "chef": "[concat(parameters('name'), '-ChefExt')]"
+        "oms": "[concat(parameters('name'), '-OMSExt')]"
       },
       "sa": {
         "name": "[parameters('storageAccountName')]",
@@ -125,7 +132,10 @@
       "publicIPAddress": "[uri(deployment().properties.templateLink.uri, '../public-ipaddress/public-ipaddress.json')]",
       "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-static.json')]",
       "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-', parameters('machinePlatform'), '.json'))]",
-      "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/setup-ctl.sh'))]"
+      "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/setup-ctl.sh'))]",
+      "extensions": {
+        "oms": "[uri(deployment().properties.templateLink.uri, concat('../monitoring/omsagent-linux-', parameters('omsAttributes').enable, '.json'))]"
+      }
     },
 
     "apiVersions": {
@@ -228,6 +238,33 @@
             "nicRef": {
               "value": "[reference(concat(variables('name').nic, '-Deployment')).outputs.ref.value]"
             }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').extension.oms, '-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').extensions.oms]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "vmName": {
+            "value": "[variables('name').vm]"
+          },
+          "omsAttributes": {
+            "value": "[parameters('omsAttributes')]"
+          }
         }
       }
     },
