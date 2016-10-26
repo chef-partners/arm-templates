@@ -63,6 +63,20 @@
               "priority": 120,
               "direction": "Inbound"
             }
+          },
+          {
+            "name": "RDP-3389",
+            "properties": {
+              "description": "Allow RDP port 3389 traffic",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 130,
+              "direction": "Inbound"
+            }
           }
         ]
       }

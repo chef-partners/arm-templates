@@ -22,6 +22,26 @@
         "description": "The static IP address to be assigned to the network card"
       },
       "defaultValue": ""
+    },
+
+    "withNSG": {
+      "type": "string",
+      "metadata": {
+        "metadata": "State if an NSG should be assigned to this NIC"
+      },
+      "defaultValue": "No",
+      "allowedValues": [
+        "Yes",
+        "No"
+      ]
+    },
+
+    "NSGRef": {
+      "type": "string",
+      "metadata": {
+        "description": "Reference to the Network Security Group to attach to this NIC"
+      },
+      "defaultValue": ""
     }
   },
   "variables": {
@@ -34,11 +54,40 @@
 
     "ref": {
       "publicIPAddress": "[parameters('publicIPAddressRef')]",
-      "subnet": "[parameters('subnetRef')]"
+      "subnet": "[parameters('subnetRef')]",
+      "nsg": "[parameters('NSGRef')]"
     },
 
     "apiVersions": {
       "networkInterfaces": "2015-06-15"
+    },
+
+    "nicProperties": "[variables(concat('nicPropertiesNSG', parameters('withNSG')))]",
+
+    // Create variable object for the nic
+    "nicPropertiesNSGNo": {
+      "ipConfigurations": [
+          {
+          "name": "ipconfig1",
+          "properties": {
+            "privateIPAllocationMethod": "Dynamic",
+            "publicIPAddress": {
+              "id": "[variables('ref').publicIPAddress]"
+            },
+            "subnet": {
+              "id": "[variables('ref').subnet]"
+            }
+          }
+        }
+      ]
+    },
+
+    // Update the object if an NSG is required
+    "nicPropertiesNSGYes": {
+      "ipConfiguations": "[variables('nicPropertiesNSGNo')]",
+      "networkSecurityGroup": {
+        "id": "[variables('ref').nsg]"
+      }
     }
 
   },
@@ -50,7 +99,7 @@
       "location": "[variables('location')]",
       "properties": {
         "ipConfigurations": [
-          {
+            {
             "name": "ipconfig1",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",

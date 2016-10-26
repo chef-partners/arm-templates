@@ -62,34 +62,42 @@
       }
     },
 
-    "chefServerAttributes": {
-      "type": "secureObject",
+    "withNSG": {
+      "type": "string",
+      "defaultValue": "No"
+    },
+
+    "NSGRef": {
+      "type": "string",
+      "defaultValue": ""
+    },
+
+    "chefRepoUrl": {
+      "type": "string",
       "metadata": {
-        "description": "Chef Server attributes that are used to the configure the server"
+        "description": "URL to the Zip file for the repo"
       }
     },
 
-    "ipAddress": {
+    "chefServerUrl": {
       "type": "string",
       "metadata": {
-        "description": "Static IP address to set on the machine"
+        "description": "URL to the Chef organisation"
       }
     },
 
-    "orchestrationServerIPAddress": {
+    "chefOrg": {
       "type": "string",
       "metadata": {
-        "description": "Internal IP address of the orchestration server from which data can be retrieved"
-      },
-      "defaultValue": "127.0.0.1"
+        "description": "Chef Organisation"
+      }
     },
 
-    "omsAttributes": {
-      "type": "secureObject",
+    "chefUser": {
+      "type": "string",
       "metadata": {
-        "description": "Object detailing the workspace id and key to configure OMS on the machine"
-      },
-      "defaultValue": {}
+        "description": "The configured Chef user"
+      }
     }
   },
 
@@ -104,7 +112,7 @@
       "dns": "[parameters('name')]",
       "computer": "[parameters('name')]",
       "extension": {
-        "oms": "[concat(parameters('name'), '-OMSExt')]"
+        "chef": "[concat(parameters('name'), '-ChefExt')]"
       },
       "sa": {
         "name": "[parameters('storageAccountName')]",
@@ -113,7 +121,8 @@
     },
 
     "ref": {
-      "subnet": "[parameters('subnetRef')]"
+      "subnet": "[parameters('subnetRef')]",
+      "nsg":  "[parameters('NSGRef')]"
     },
 
     "type": {
@@ -128,20 +137,15 @@
 
     "urls": {
       "publicIPAddress": "[uri(deployment().properties.templateLink.uri, '../public-ipaddress/public-ipaddress.json')]",
-      "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-static-publicip.json')]",
-      "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-ubuntu.json'))]",
-      "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/setup-ctl.sh'))]",
-      "extensions": {
-        "oms": "[uri(deployment().properties.templateLink.uri, concat('../monitoring/omsagent-linux-', parameters('omsAttributes').enable, '.json'))]"
-      }
+      "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-publicip.json')]",
+      "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-windows.json'))]",
+        "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/windows-workstation.ps1'))]"
     },
 
     "apiVersions": {
       "deployments": "2016-02-01",
       "networkInterfaces": "2015-06-15"
-    },
-
-    "chef": "[parameters('chefServerAttributes')]"
+    }
   },
 
   "resources": [
@@ -196,9 +200,12 @@
             "subnetRef": {
               "value": "[variables('ref').subnet]"
             },
-            "ipAddress": {
-              "value": "[parameters('ipAddress')]"
-            }    
+            "withNSG": {
+              "value": "[parameters('withNSG')]"
+            },
+            "NSGRef": {
+              "value": "[parameters('NSGRef')]"
+            }
         }
       }
     },
@@ -207,9 +214,6 @@
       "type": "Microsoft.Resources/deployments",
       "name": "[concat(variables('name').vm, '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
-      "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/', variables('name').nic, '-Deployment')]"
-      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -243,64 +247,34 @@
             },
             "nicRef": {
               "value": "[reference(concat(variables('name').nic, '-Deployment')).outputs.ref.value]"
-            },
-            "fqdn": {
-              "value": "[reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value]"
             }
         }
       }
     },
 
-    {
-      "type": "Microsoft.Resources/deployments",
-      "name": "[concat(variables('name').extension.oms, '-Deployment')]",
-      "apiVersion": "[variables('apiVersions').deployments]",
-      "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('urls').extensions.oms]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "location": {
-            "value": "[variables('location')]"
-          },
-          "vmName": {
-            "value": "[variables('name').vm]"
-          },
-          "omsAttributes": {
-            "value": "[parameters('omsAttributes')]"
-          },
-          "serverType": {
-            "value": "chef"
-          }
-        }
-      }
-    },
-
+    /*
+    Add the Windows Custom script extension to configure the workstation
+    */
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('name').vm, '/InstallChefServer')]",
-      "apiVersion": "2015-06-15",
+      "name": "[concat(variables('name').vm, '/InstallChefDK')]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[variables('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/', variables('name').extension.oms, '-Deployment')]"
+          "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
       ],
       "properties": {
-        "publisher": "Microsoft.Azure.Extensions",
-        "type": "CustomScript",
-        "typeHandlerVersion": "2.0",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "fileUris": [
-            "[variables('urls').configurationScript]"
-          ],
-          "commandToExecute": "[concat('./setup-ctl.sh -m chef-install,chef-configure', reference(concat(variables('name').extension.oms, '-Deployment')).outputs.commandMode.value, ' --chef-version \"', variables('chef').version, '\" -u \"', variables('chef').username,'\" -f \"', variables('chef').fullname, '\" -p \"', variables('chef').password, '\" -e \"', variables('chef').emailaddress, '\" -o \"', variables('chef').org, '\" -d \"', variables('chef').orgdescription, '\" -s https://', reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value, '/organizations/', variables('chef').org, ' -O \"', parameters('orchestrationServerIPAddress'), ':4001\" -w', reference(concat(variables('name').extension.oms, '-Deployment')).outputs.commandArgument.value)]"
-        }
-      },
-      "location": "[resourceGroup().location]"
+          "publisher": "Microsoft.Compute",
+          "type": "CustomScriptExtension",
+          "typeHandlerVersion": "1.7",
+          "autoUpgradeMinorVersion":true,
+          "settings": {
+              "fileUris": [
+                  "[variables('urls').configurationScript]"
+              ],
+              "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File .\\windows-workstation.ps1 -operation \"chefdk,chefrepo,chefclient\" -chefdk_version 0.18.30 -chef_repo_url \"', parameters('chefRepoUrl'), '\" -chef_org \"', parameters('chefOrg'), '\" -chef_server_url \"', parameters('chefServerUrl'), '\" -chef_user \"', parameters('chefUser'), '\" -windows_password \"', parameters('adminPassword'), '\" > windows-workstation.log')]"
+          }
+      }
     }
 
   ],
@@ -309,14 +283,6 @@
     "fqdn": {
       "type": "string",
       "value": "[reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value]"
-    },
-    "ssh": {
-      "type": "string",
-      "value": "[concat('ssh azure@', reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value)]"
-    },
-    "url": {
-      "type": "string",
-      "value": "[concat('https://', reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value, '/organizations/', variables('chef').org)]"
     }
   }
 }

@@ -1,0 +1,193 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.4",
+  "parameters": {
+
+  "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Hostname for the machine, which will also be the Public FQDN name.  For Windows machines this must be 15 characters or less"
+      }
+    },
+
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username to be set on the machine, this is the name to be used for RDP access"
+      },
+      "defaultValue": "azure"
+    },
+
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password to be associated with the specified username"
+      }
+    },
+
+    "chefRepoUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URL to the Zip file for the repo"
+      }
+    },
+
+    "chefServerUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URL to the Chef organisation"
+      }
+    },
+
+    "chefOrg": {
+      "type": "string",
+      "metadata": {
+        "description": "Chef Organisation"
+      }
+    },
+
+    "chefUser": {
+      "type": "string",
+      "metadata": {
+        "description": "The configured Chef user"
+      }
+    },
+
+    "networkRG": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the resource group with the networking"
+      }
+    },
+
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the virtual network which has the subnet"
+      }
+    },
+
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "name of the subnet to connect the machine to"
+      }
+    },
+
+    "shortUniqueLength": {
+      "type": "int",
+      "defaultValue": 4
+    }
+  },
+
+  "variables": {
+
+    "unique": "[uniqueString(subscription().subscriptionId, resourceGroup().id, deployment().name)]",
+    "uniqueShort": "[substring(variables('unique'), 0, parameters('shortUniqueLength'))]",
+
+    "location": "[resourceGroup().location]",
+
+    "name": {
+      "computer": {
+        "workstation": "[concat('chef-ws-', variables('uniqueShort'))]"
+      },
+      "sa": {
+        "name": "[variables('unique')]"
+      }
+    },
+
+    "ref": {
+      "subnet": "[resourceId(parameters('networkRG'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]"
+    },
+
+    "urls": {
+      "storageAccount": "[uri(deployment().properties.templateLink.uri, 'nested/storage-account/storage-account.json')]",
+      "workstation": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-windows-workstation.json')]"
+    },
+
+    "apiVersions": {
+      "deployments": "2016-02-01"
+    }
+  },
+
+  "resources": [
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "StorageAccountSetup",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "properties": {
+      "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').storageAccount]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "storageAccountName": {
+            "value": "[variables('name').sa.name]"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "AutomateWorkstation-Deployment",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/StorageAccountSetup"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').workstation]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "name": {
+            "value": "[parameters('name')]"
+          },
+          "vmSize": {
+            "value": "Standard_DS2_v2"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "subnetRef": {
+            "value": "[variables('ref').subnet]"
+          },
+          "storageAccountName": {
+            "value": "[variables('name').sa.name]"
+          },
+          "imageSku": {
+            "value": "2012-R2-Datacenter"
+          },
+          "chefRepoUrl": {
+            "value": "[parameters('chefRepoUrl')]"
+          },
+          "chefServerUrl": {
+            "value": "[parameters('chefServerUrl')]"
+          },
+          "chefOrg": {
+            "value": "[parameters('chefOrg')]"
+          },
+          "chefUser": {
+            "value": "[parameters('chefUser')]"
+          }
+        }
+      }
+    }
+
+  ],
+
+  "outputs": {
+
+    
+  }
+}

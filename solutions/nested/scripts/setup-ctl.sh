@@ -421,6 +421,10 @@ do
           cmd=$(printf 'curl %s/v2/keys/automate/token -XPUT -d value="`cat data_token`"' $ORCHESTRATION_SERVER)
           executeCmd $cmd
 
+          # Add the URL to the organisation in the chef server
+          cmd=$(printf 'curl %s/v2/keys/chefserver/url -XPUT -d value="%s"' $ORCHESTRATION_SERVER $CHEF_SERVER_URL)
+          executeCmd $cmd
+
           CHEF_SERVER_FILE="/etc/opscode/chef-server.rb"
 
           # Ensure that directory exists
@@ -437,6 +441,9 @@ do
           executeCmd $cmd
 
           cmd=$(printf 'curl %s/v2/keys/%s/validator -XPUT -d value="`cat %s-validator.pem | base64`"' $ORCHESTRATION_SERVER $CHEF_ORGNAME $CHEF_ORGNAME)
+          executeCmd $cmd
+
+          cmd=$(printf 'curl %s/v2/keys/%s/user/%s -XPUT -d value="`cat %s.pem | base64`"' $ORCHESTRATION_SERVER $CHEF_ORGNAME $CHEF_USER_NAME $CHEF_USER_NAME)
           executeCmd $cmd
 
           cmd=$(printf 'curl %s/v2/keys/delivery/user/delivery -XPUT -d value="`cat delivery.pem | base64`"' $ORCHESTRATION_SERVER)
@@ -633,6 +640,13 @@ EOH
 
         cmd=$(printf 'delivery-ctl create-user Delivery %s --password %s --roles admin --ssh-pub-key-file $PWD/user.pub.key' $CHEF_USER_NAME $CHEF_USER_PASSWORD)
         executeCmd $cmd
+
+        # Add the url to the automate server to the orchestration server
+        cmd=$(printf 'curl %s/v2/keys/automate/url -XPUT -d value="https://%s/e/Delivery"' $ORCHESTRATION_SERVER `hostname -f`)
+        executeCmd $cmd
+
+        cmd=$(printf 'curl %s/v2/keys/automate/fqdn -XPUT -d value="%s"' $ORCHESTRATION_SERVER `hostname -f`)
+        executeCmd $cmd
       fi
 
 
@@ -662,6 +676,10 @@ EOH
         then
           executeCmd "apt-get install jq -y"
         fi
+
+        # Add the url for the compliance server
+        cmd=$(printf 'curl %s/v2/keys/compliance/url -XPUT -d value="https://%s"' $ORCHESTRATION_SERVER `hostname -f`)
+        executeCmd $cmd
 
         chef_hostname=`hostname -f | sed 's/compliance/chef/'`
 

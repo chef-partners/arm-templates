@@ -75,6 +75,16 @@
 
     "chefData": {
       "type": "secureObject"
+    },
+
+    "withNSG": {
+      "type": "string",
+      "defaultValue": "No"
+    },
+
+    "NSGRef": {
+      "type": "string",
+      "defaultValue": ""
     }
   },
 
@@ -98,7 +108,8 @@
     },
 
     "ref": {
-      "subnet": "[parameters('subnetRef')]"
+      "subnet": "[parameters('subnetRef')]",
+      "nsg":  "[parameters('NSGRef')]"
     },
 
     "type": {
@@ -175,7 +186,13 @@
             },
             "subnetRef": {
               "value": "[variables('ref').subnet]"
-            }    
+            },
+            "withNSG": {
+              "value": "[parameters('withNSG')]"
+            },
+            "NSGRef": {
+              "value": "[parameters('NSGRef')]"
+            }
         }
       }
     },

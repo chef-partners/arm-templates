@@ -1,0 +1,43 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "name": {
+       // Name of the machine.  This will be used as the hostname of the machine so make sure it is 15 characters or less
+      "value": ""
+    },
+    "adminPassword": {
+      // Admin password for the specified adminUsername
+      "value": ""
+    },
+    "chefRepoUrl": {
+      // URL to the Zip file that contains the Chef Repo
+      // This must be accessible to Azure during deployment
+      "value": ""
+    },
+    "chefServerUrl": {
+      // URL to the Chef Server including the organisation
+      "value": ""
+    },
+    "chefOrg": {
+      // The organisation created on the Chef Server
+      "value": ""
+    },
+    "chefUser": {
+      // The user that has been created on the chef server
+      "value": ""
+    },
+    "networkRG": {
+      // Resource Group that contains the networking components
+      "value": ""
+    },
+    "virtualNetworkName": {
+      // Name of the virtual network containing the subnet
+      "value": ""
+    },
+    "subnetName": {
+      // Name of the subnet to connect to
+      "value": ""
+    }
+  }
+}
