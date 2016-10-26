@@ -43,6 +43,9 @@
     },
     "automateLicense": {
       "value": ""
+    },
+    "chefRepoUrl": {
+      "value": ""
     }
   }
 }

@@ -138,6 +138,13 @@
       "defaultValue": ""
     },
 
+    "chefRepoUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URL for the repo Zip file"
+      }
+    },
+
     "automateVersion": {
       "type": "string",
       "metadata": {
@@ -214,14 +221,16 @@
         "chef": "[concat(parameters('prefix'), '-chef-', variables('uniqueShort'), '-VM')]",
         "orchestrationserver": "[concat(parameters('prefix'), '-orchestrator-', variables('uniqueShort'), '-VM')]",
         "automate": "[concat(parameters('prefix'), '-automate-', variables('uniqueShort'), '-VM')]",
-        "compliance": "[concat(parameters('prefix'), '-compliance-', variables('uniqueShort'), '-VM')]"
+        "compliance": "[concat(parameters('prefix'), '-compliance-', variables('uniqueShort'), '-VM')]",
+        "workstation": "[concat(parameters('prefix'), '-ws-', variables('uniqueShort'), '-VM')]"
       },
       "computer": {
         "chef": "[concat(parameters('prefix'), '-chef-', variables('uniqueShort'))]",
         "orchestrationserver": "[concat(parameters('prefix'), '-orchestrator-', variables('uniqueShort'))]",
         "automate": "[concat(parameters('prefix'), '-automate-', variables('uniqueShort'))]",
         "compliance": "[concat(parameters('prefix'), '-compliance-', variables('uniqueShort'))]",
-        "buildnode":  "[concat(parameters('prefix'), '-bn-', variables('uniqueShort'))]"
+        "buildnode":  "[concat(parameters('prefix'), '-bn-', variables('uniqueShort'))]",
+        "workstation": "[concat(parameters('prefix'), '-ws-', variables('uniqueShort'))]"
       }
     },
 
@@ -279,12 +288,13 @@
 
     "urls": {
       "storageAccount": "[uri(deployment().properties.templateLink.uri, 'nested/storage-account/storage-account.json')]",
-      "vnet": "[uri(deployment().properties.templateLink.uri, 'nested/virtual-network/vnet.json')]",
+      "vnet": "[uri(deployment().properties.templateLink.uri, 'nested/virtual-network/vnet-nsg.json')]",
       "orchestrationserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-orchestration.json')]",
       "chefserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-chefserver-scratch.json')]",
       "automateserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-automateserver-scratch.json')]",
       "complianceserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-complianceserver-scratch.json')]",
       "buildnode": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-buildnode.json')]",
+      "workstation": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-windows-workstation.json')]",
       "nsg": {
         "chefservers": "[uri(deployment().properties.templateLink.uri, 'nested/security-groups/chef-servers.json')]"
       }
@@ -621,6 +631,58 @@
           }
         }
       }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "AutomateCluster-Workstation",
+      "apiVersion": "2016-02-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/AutomateCluster-ChefServer",
+        "Microsoft.Resources/deployments/AutomateCluster-AutomateServer"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').workstation]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "name": {
+            "value": "[variables('name').computer.workstation]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "subnetRef": {
+            "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
+          },
+          "storageAccountName": {
+            "value": "[variables('name').storageAccountName]"
+          },
+          "vmSize": {
+            "value": "Standard_DS2_v2"
+          },
+          "imageSku": {
+            "value": "2012-R2-Datacenter"
+          },
+          "chefRepoUrl": {
+            "value": "[parameters('chefRepoUrl')]"
+          },
+          "chefServerUrl": {
+            "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-ChefServer').outputs.url.value]"
+          },
+          "chefOrg": {
+            "value": "[variables('chef').org]"
+          },
+          "chefUser": {
+            "value": "[variables('chef').username]"
+          }
+        }
+      }
     }
   ],
   "outputs": {
@@ -659,6 +721,10 @@
     "complianceServerUrl": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-ComplianceServer').outputs.url.value]"
+    },
+    "workstationFQDN": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-Workstation').outputs.fqdn.value]"
     }
   }
 }
