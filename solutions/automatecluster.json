@@ -43,6 +43,21 @@
       }
     },
 
+    "vmSizes": {
+      "type": "object",
+      "metadata": {
+        "description": "Object stating the size of the machines that are to be created in this cluster"
+      },
+      "defaultValue": {
+        "orchestration": "Standard_D1_V2",
+        "buildnode": "Standard_D1_V2",
+        "chefserver": "Standard_DS2_V2",
+        "automateserver": "Standard_DS2_V2",
+        "complianceserver": "Standard_DS2_V2",
+        "workstation": "Standard_DS2_V2"
+      }
+    },
+
     "shortUniqueLength": {
       "type": "int",
       "metadata": {
@@ -113,13 +128,6 @@
         "description": "Password for the specified Chef user"
       },
       "defaultValue": ""
-    },
-
-    "userSSHPublicKey": {
-      "type": "string",
-      "metadata": {
-        "description": "Base64 encoded SSH public key for the user being added to the Automate Server.  This is NOT the SSH key that would be configured for SSH access into the servers"
-      }
     },
 
     "chefOrg": {
@@ -203,6 +211,22 @@
         "description": "Resource Group that the OMS workspace is attached to"
       },
       "defaultValue": "[resourceGroup().name]"
+    },
+
+    "subscriptionPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Used by the PowerShell bootstrap script to set the password for the subscription.  This is so that the workstation::azurecred recipe can configure the SPN correctly"
+      },
+      "defaultValue": ""
+    },
+
+    "subscriptionUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username to use to login to the subscription"
+      },
+      "defaultValue": ""
     }
   },
   "variables": {
@@ -250,7 +274,6 @@
       "fullname": "[parameters('userFullname')]",
       "password": "[parameters('userPassword')]",
       "emailaddress": "[parameters('userEmailaddress')]",
-      "sshpublickey": "[parameters('userSSHPublicKey')]",
       "license": "[parameters('automateLicense')]",
       "chefdkversion": "[parameters('chefDKVersion')]"
     },
@@ -399,6 +422,9 @@
           "name": {
             "value": "[variables('name').computer.orchestrationserver]"
           },
+          "vmSize": {
+            "value": "[parameters('vmSizes').orchestration]"
+          },
           "adminUsername": {
             "value": "[parameters('adminUsername')]"
           },
@@ -448,6 +474,9 @@
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
           },
+          "vmSize": {
+            "value": "[parameters('vmSizes').buildnode]"
+          },
           "subnetRef": {
             "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
           },
@@ -496,14 +525,14 @@
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
           },
+          "vmSize": {
+            "value": "[parameters('vmSizes').chefserver]"
+          },
           "subnetRef": {
             "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
           },
           "storageAccountName": {
             "value": "[variables('name').storageAccountName]"
-          },
-          "vmSize": {
-            "value": "Standard_DS2_v2"
           },
           "imageSku": {
             "value": "16.04.0-LTS"
@@ -548,14 +577,14 @@
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
           },
+          "vmSize": {
+            "value": "[parameters('vmSizes').automateserver]"
+          },
           "subnetRef": {
             "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
           },
           "storageAccountName": {
             "value": "[variables('name').storageAccountName]"
-          },
-          "vmSize": {
-            "value": "Standard_DS2_v2"
           },
           "imageSku": {
             "value": "16.04.0-LTS"
@@ -605,14 +634,14 @@
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
           },
+          "vmSize": {
+            "value": "[parameters('vmSizes').complianceserver]"
+          },          
           "subnetRef": {
             "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
           },
           "storageAccountName": {
             "value": "[variables('name').storageAccountName]"
-          },
-          "vmSize": {
-            "value": "Standard_DS2_v2"
           },
           "imageSku": {
             "value": "16.04.0-LTS"
@@ -657,14 +686,14 @@
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
           },
+          "vmSize": {
+            "value": "[parameters('vmSizes').workstation]"
+          },
           "subnetRef": {
             "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
           },
           "storageAccountName": {
             "value": "[variables('name').storageAccountName]"
-          },
-          "vmSize": {
-            "value": "Standard_DS2_v2"
           },
           "imageSku": {
             "value": "2012-R2-Datacenter"
@@ -680,12 +709,30 @@
           },
           "chefUser": {
             "value": "[variables('chef').username]"
+          },
+          "subscriptionPassword": {
+            "value": "[parameters('subscriptionPassword')]"
+          },
+          "subscriptionUsername": {
+            "value": "[parameters('subscriptionUsername')]"
           }
         }
       }
     }
   ],
   "outputs": {
+    "storageAccountName": {
+      "type": "string",
+      "value": "[variables('name').storageAccountName]"
+    },
+    "shortUnique": {
+      "type": "string",
+      "value": "[variables('uniqueShort')]"
+    },
+    "subnetRef": {
+      "type": "string",
+      "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
+    },
     "chefServerFQDN": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-ChefServer').outputs.fqdn.value]"

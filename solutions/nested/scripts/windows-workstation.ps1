@@ -34,7 +34,23 @@ param (
   $windows_user = "azure",
 
   [string]
-  $windows_password
+  $windows_password,
+
+  [string]
+  # IP Address of the orchestration server
+  $orchestrationserver = "10.0.0.4:4001",
+
+  [string]
+  # Subscription ID
+  $subscriptionId = "",
+
+  [string]
+  # Password associated with the subscription
+  $subscriptionPassword = "",
+
+  [string]
+  # Password associated with the subscription
+  $subscriptionUsername = ""
 
 )
 
@@ -208,6 +224,13 @@ foreach ($mode in $modes) {
             }
           }
         }
+        azure = @{
+          subscription = @{
+            id = $subscriptionId
+            password = $subscriptionPassword
+            username = $subscriptionUsername
+          }
+        }
       }
 
       Write-Output "Creating first run JSON attributes file"
@@ -253,6 +276,40 @@ foreach ($mode in $modes) {
       Write-Output $output
 
       Set-Location -Path $current_path
+    }
+
+    "infranode" {
+
+      # Obtain the validation key from the orchestration server and then run the chef client
+      $uri = "http://{0}/v2/keys/{1}/validator" -f $orchestrationserver, $chef_org.toLower()
+      $data = Invoke-RestMethod -Uri $uri
+
+      # Decode the Base64 encoded string and save the file in the correct place
+      $bytes = [System.Convert]::FromBase64String($data.node.value)
+      $path = "C:\chef\validation.pem"
+      Set-Content -Path $path -Value $([System.Text.Encoding]::UTF8.GetString($bytes))
+
+      # Get the data_token and the automate server FQDN from the orchestration server
+      $uri = "http://{0}/v2/keys/automate/token" -f $orchestrationserver
+      $data_token = (Invoke-RestMethod -Uri $uri).node.value
+
+      $uri = "http://{0}/v2/keys/automate/fqdn" -f $orchestrationserver
+      $automate_fqdn = (Invoke-RestMethod -Uri $uri).node.value
+
+      # Build up the string to insert into the client.rb configuration file
+      $configuration = @"
+
+# Settings to get chef-client to report to the automate cluster properly
+data_collector.server_url "https://{0}/data-collector/v0/"
+data_collector.token "{1}"
+"@ -f $automate_fqdn, $data_token
+
+      # Append this to the configuration file
+      Add-Content -Path "C:\chef\client.rb" -Value $configuration
+
+      # Run the chef-client with the appropriate parameters
+      Start-Process "c:\opscode\chef\bin\chef-client" -argumentlist "-j c:\chef\first-boot.json" -Wait
+
     }
 
     default {

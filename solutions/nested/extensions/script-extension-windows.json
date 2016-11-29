@@ -1,0 +1,63 @@
+
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the computer.  This will also be used as the DNS label prefix"
+      }
+    },
+    "chefOrg": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the organisation that has been created on the Chef server"
+      }
+    }
+  },
+  "variables": {
+    "urls": {
+      "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/windows-workstation.ps1'))]"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmName'), '/GetValidationKey')]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[resourceGroup().location]",
+      "properties": {
+          "publisher": "Microsoft.Compute",
+          "type": "CustomScriptExtension",
+          "typeHandlerVersion": "1.7",
+          "autoUpgradeMinorVersion":true,
+          "settings": {
+              "fileUris": [
+                  "[variables('urls').configurationScript]"
+              ],
+              "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File .\\windows-workstation.ps1 -operation infranode -chef_org \"', parameters('chefOrg'), '\" > chefclient-initial.log')]"
+          }
+      }
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
