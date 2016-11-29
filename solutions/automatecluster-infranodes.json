@@ -1,0 +1,496 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.4",
+  "parameters": {
+
+    "prefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Prefix to be assigned to each of the servers"
+      }
+    },
+
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "azure"
+    },
+
+    "adminPassword": {
+      "type": "securestring"
+    },
+
+    "networkVNetSize": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/24"
+    },
+
+    "networkSubnetSize": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/28"
+    },
+
+    "ipAddresses": {
+      "type": "object",
+      "metadata": {
+        "description": "Object of static internal IP addresses to be assigned to machines"
+      },
+      "defaultValue": {
+        "orchestration": "10.0.0.4",
+        "chefserver": "10.0.0.5",
+        "automateserver": "10.0.0.6",
+        "complianceserver": "10.0.0.7",
+        "buildnodestart": "10.0.0.8"
+      }
+    },
+
+    "vmSizes": {
+      "type": "object",
+      "metadata": {
+        "description": "Object stating the size of the machines that are to be created in this cluster"
+      },
+      "defaultValue": {
+        "orchestration": "Standard_D1_V2",
+        "buildnode": "Standard_D1_V2",
+        "chefserver": "Standard_DS2_V2",
+        "automateserver": "Standard_DS2_V2",
+        "complianceserver": "Standard_DS2_V2",
+        "workstation": "Standard_DS2_V2",
+        "infrastructurenode": "Standard_DS2_V2"
+      }
+    },
+
+    "shortUniqueLength": {
+      "type": "int",
+      "metadata": {
+        "description": "The number of the characters to use for the short unique string"
+      },
+      "defaultValue": 4
+    },
+
+    "storageAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "metadata": {
+        "description": "The type of storage account to use"
+      }
+    },
+
+    "automateLicense": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+
+      }
+    },
+
+    "chefVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of chef server to install"
+      },
+      "defaultValue": ""
+    },
+
+    "chefDKVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of ChefDK to use for the build nodes"
+      },
+      "defaultValue": ""
+    },
+
+    "userName": {
+      "type": "string",
+      "metadata": {
+        "description": "Username or the us"
+      },
+      "defaultValue": ""
+    },
+
+    "userFullname": {
+      "type": "string",
+      "metadata": {
+        "description": "Full name of the user to create"
+      },
+      "defaultValue": ""
+    },
+
+    "userEmailaddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Email address of the chef user"
+      },
+      "defaultValue": ""
+    },
+
+    "userPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the specified Chef user"
+      },
+      "defaultValue": ""
+    },
+
+    "chefOrg": {
+      "type": "string",
+      "metadata": {
+        "description": "Organisation to be created on the Chef server"
+      },
+      "defaultValue": ""
+    },
+
+    "chefOrgDescription": {
+      "type": "string",
+      "metadata": {
+        "description": "Description for the Chef organisation"
+      },
+      "defaultValue": ""
+    },
+
+    "chefRepoUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URL for the repo Zip file"
+      }
+    },
+
+    "automateVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of automate server to install"
+      },
+      "defaultValue": ""
+    },
+
+    "complianceVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of compliance server to install"
+      },
+      "defaultValue": ""
+    },
+
+    "buildNodeCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Number of build nodes that are required for the deployment"
+      },
+      "defaultValue": 1
+    },
+
+    "infrastructureNodes": {
+      "type": "object",
+      "metadata": {
+        "description": "Object describing how many infrastructure nodes are required and what platform they should be"
+      },
+      "defaultValue": {
+        "count": 1,
+        "platform": "windows",
+        "sku": "2012-R2-Datacenter",
+        "runlist": "",
+        "environment": "union",
+        "configuration": ""
+      }
+    },
+
+    "enableMonitoring": {
+      "type": "string",
+      "metadata": {
+        "description": "State whether to enable OMS monoitoring on the Automate Cluster.  Default: No"
+      },
+      "defaultValue": "no",
+      "allowedValues": [
+        "yes",
+        "no"
+      ]
+    },
+
+    "omsWorkspaceId": {
+      "type": "string",
+      "metadata": {
+        "description": "ID of the OMS workspace to write logs to"
+      },
+      "defaultValue": ""
+    },
+
+    "omsWorkspaceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the workspace"
+      },
+      "defaultValue": ""
+    },
+
+    "omsResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group that the OMS workspace is attached to"
+      },
+      "defaultValue": "[resourceGroup().name]"
+    },
+
+    "subscriptionPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Used by the PowerShell bootstrap script to set the password for the subscription.  This is so that the workstation::azurecred recipe can configure the SPN correctly"
+      },
+      "defaultValue": ""
+    },
+
+    "subscriptionUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username to use to login to the subscription"
+      },
+      "defaultValue": ""
+    }
+  },
+
+  "variables": {
+
+    "urls": {
+      "automatecluster": "[uri(deployment().properties.templateLink.uri, 'automatecluster.json')]",
+      "infranode": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-infranode.json')]"
+    }
+
+  },
+  "resources": [
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "AutomateCluster",
+      "apiVersion": "2016-02-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').automatecluster]",
+          "contentVersion": "1.0.0.4"
+        },
+        "parameters": {
+          "prefix": {
+              "value": "[parameters('prefix')]"
+            },
+
+            "adminUsername": {
+              "value": "[parameters('adminUsername')]"
+            },
+
+            "adminPassword": {
+              "value": "[parameters('adminPassword')]"
+            },
+
+            "networkVNetSize": {
+              "value": "[parameters('networkVNetSize')]"
+            },
+
+            "networkSubnetSize": {
+              "value": "[parameters('networkSubnetSize')]"
+            },
+
+            "ipAddresses": {
+              "value": "[parameters('ipAddresses')]"
+            },
+
+            "vmSizes": {
+              "value": "[parameters('vmSizes')]"
+            },
+
+            "shortUniqueLength": {
+              "value": "[parameters('shortUniqueLength')]"
+            },
+
+            "storageAccountType": {
+              "value": "[parameters('storageAccountType')]"
+            },
+
+            "automateLicense": {
+              "value": "[parameters('automateLicense')]"
+            },
+
+            "chefVersion": {
+              "value": "[parameters('chefVersion')]"
+            },
+
+            "chefDKVersion": {
+              "value": "[parameters('chefDKVersion')]"
+            },
+
+            "userName": {
+              "value": "[parameters('userName')]"
+            },
+
+            "userFullname": {
+              "value": "[parameters('userFullname')]"
+            },
+
+            "userEmailaddress": {
+              "value": "[parameters('userEmailaddress')]"
+            },
+
+            "userPassword": {
+              "value": "[parameters('userPassword')]"
+            },
+
+            "chefOrg": {
+              "value": "[parameters('chefOrg')]"
+            },
+
+            "chefOrgDescription": {
+              "value": "[parameters('chefOrgDescription')]"
+            },
+
+            "chefRepoUrl": {
+              "value": "[parameters('chefRepoUrl')]"
+            },
+
+            "automateVersion": {
+              "value": "[parameters('automateVersion')]"
+            },
+
+            "complianceVersion": {
+              "value": "[parameters('complianceVersion')]"
+            },
+
+            "buildNodeCount": {
+              "value": "[parameters('buildNodeCount')]"
+            },
+
+            "enableMonitoring": {
+              "value": "[parameters('enableMonitoring')]"
+            },
+
+            "omsWorkspaceId": {
+              "value": "[parameters('omsWorkspaceId')]"
+            },
+
+            "omsWorkspaceName": {
+              "value": "[parameters('omsWorkspaceName')]"
+            },
+
+            "omsResourceGroup": {
+              "value": "[parameters('omsResourceGroup')]"
+            },
+
+            "subscriptionPassword": {
+              "value": "[parameters('subscriptionPassword')]"
+            },
+
+            "subscriptionUsername": {
+              "value": "[parameters('subscriptionUsername')]"
+            }
+        }
+      }
+    },
+
+    /*
+
+      Now that the main cluster has been created, deploy the specified number of infrastructure nodes
+
+    */
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "AutomateCluster-InfrastructureNodes",
+      "apiVersion": "2016-02-01",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/AutomateCluster"
+      ],
+      "copy": {
+        "name": "nodeCopy",
+        "count": "[parameters('infrastructureNodes').count]"
+      },
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').infranode]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "name": {
+            "value": "[concat(parameters('prefix'), '-', substring(parameters('infrastructureNodes').platform, 0, 1), '-', reference('Microsoft.Resources/deployments/AutomateCluster').outputs.shortUnique.value, '-', copyIndex(1))]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "subnetRef": {
+            "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.subnetRef.value]"
+          },
+          "storageAccountName": {
+            "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.storageAccountName.value]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSizes').infrastructurenode]"
+          },
+          "imageSku": {
+            "value": "[parameters('infrastructureNodes').sku]"
+          },
+          "machinePlatform": {
+            "value": "[parameters('infrastructureNodes').platform]"
+          },
+          "chefData": {
+            "value": {
+              "serverUrl": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.chefServerUrl.value]",
+              "org": "[parameters('chefOrg')]",
+              "validator": {
+                "name": "[concat(toLower(parameters('chefOrg')), '-validator')]",
+                "key": "Random string that will be replaced when the subsequent setup script runs"
+              },
+              "node": {
+                "sslVerifyMode": "none",
+                "environment": "[parameters('infrastructureNodes').environment]",
+                "configuration": "[parameters('infrastructureNodes').configuration]"
+              },
+              "runlist": "[parameters('infrastructureNodes').runlist]"
+            }
+          }
+        }
+      }
+    }
+
+  ],
+  "outputs": {
+    "chefServerFQDN": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.chefServerFQDN.value]"
+    },
+    "chefServerSSH": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.chefServerSSH.value]"
+    },
+    "chefServerUrl": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.chefServerUrl.value]"
+    },
+    "automateServerFQDN": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.automateServerFQDN.value]"
+    },
+    "automateServerSSH": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.automateServerSSH.value]"
+    },
+    "automateServerUrl": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.automateServerUrl.value]"
+    },
+    "complianceServerFQDN": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.complianceServerFQDN.value]"
+    },
+    "complianceServerSSH": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.complianceServerSSH.value]"
+    },
+    "complianceServerUrl": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.complianceServerUrl.value]"
+    },
+    "workstationFQDN": {
+      "type": "string",
+      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster').outputs.workstationFQDN.value]"
+    }
+  }
+}

@@ -71,10 +71,24 @@
               "protocol": "Tcp",
               "sourcePortRange": "*",
               "destinationPortRange": "3389",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "VirtualNetwork",
               "access": "Allow",
               "priority": 130,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AUTOMATE-8989",
+            "properties": {
+              "description": "Allow Automate port 8989 traffic",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "8989",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 140,
               "direction": "Inbound"
             }
           }

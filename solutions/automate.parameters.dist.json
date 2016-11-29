@@ -9,10 +9,10 @@
       "value": ""
     },
     "chefVersion": {
-      "value": "12.9.0"
+      "value": "12.11.1"
     },
     "chefDKVersion": {
-      "value": "0.18.30"
+      "value": "1.0.3"
     },
     "userName": {
       "value": ""
@@ -26,9 +26,6 @@
     "userPassword": {
       "value": ""
     },
-    "userSSHPublicKey": {
-      "value": ""
-    },
     "chefOrg": {
       "value": ""
     },
@@ -36,16 +33,26 @@
       "value": ""
     },
     "complianceVersion": {
-      "value": "1.5.14"
+      "value": "1.6.8"
     },
     "automateVersion": {
-      "value": "0.5.370"
+      "value": "0.6.7"
     },
     "automateLicense": {
       "value": ""
     },
     "chefRepoUrl": {
       "value": ""
+    },
+    "infrastructureNodes": {
+      "value": {
+        "count": 1,
+        "platform": "windows",
+        "sku": "2012-R2-Datacenter",
+        "runlist": "recipe[training::default]",
+        "environment": "union",
+        "configuration": ""
+      }
     }
   }
 }
