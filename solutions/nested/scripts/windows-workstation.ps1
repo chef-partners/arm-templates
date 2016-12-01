@@ -50,7 +50,23 @@ param (
 
   [string]
   # Password associated with the subscription
-  $subscriptionUsername = ""
+  $subscriptionUsername = "",
+
+  [string]
+  # Location in Azure
+  $azurelocation = "",
+
+  [string]
+  # Client id
+  $clientId,
+
+  [string]
+  # client secret
+  $clientSecret,
+
+  [string]
+  # tenant id
+  $tenantId
 
 )
 
@@ -225,11 +241,17 @@ foreach ($mode in $modes) {
           }
         }
         azure = @{
+          location = $azurelocation
           subscription = @{
             id = $subscriptionId
             password = $subscriptionPassword
             username = $subscriptionUsername
           }
+          spn = @{
+            client_id = $clientId
+            client_secret = $clientSecret
+            tenant_id = $tenantId
+          } 
         }
       }
 

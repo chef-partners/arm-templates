@@ -114,6 +114,18 @@
         "description": "Username to use to login to the subscription"
       },
       "defaultValue": ""
+    },
+
+    "spnDetails": {
+      "type": "secureObject",
+      "metadata": {
+        "description": "Object containing the SPN information that should be used for Test Kitchen"
+      },
+      "defaultValue": {
+        "clientId": "",
+        "clientSecret": "",
+        "tenantId": ""
+      }
     }
   },
 
@@ -294,7 +306,7 @@
               "fileUris": [
                   "[variables('urls').configurationScript]"
               ],
-              "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File .\\windows-workstation.ps1 -operation \"chefdk,chefrepo,chefclient\" -chefdk_version 1.0.3 -chef_repo_url \"', parameters('chefRepoUrl'), '\" -chef_org \"', parameters('chefOrg'), '\" -chef_server_url \"', parameters('chefServerUrl'), '\" -chef_user \"', parameters('chefUser'), '\" -windows_password \"', parameters('adminPassword'), '\" -subscriptionId \"', variables('subscription').id, '\" -subscriptionPassword \"', variables('subscription').password, '\" -subscriptionUsername \"', variables('subscription').username, '\" > windows-workstation.log')]"
+              "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File .\\windows-workstation.ps1 -operation \"chefdk,chefrepo,chefclient\" -chefdk_version 1.0.3 -chef_repo_url \"', parameters('chefRepoUrl'), '\" -chef_org \"', parameters('chefOrg'), '\" -chef_server_url \"', parameters('chefServerUrl'), '\" -chef_user \"', parameters('chefUser'), '\" -windows_password \"', parameters('adminPassword'), '\" -subscriptionId \"', variables('subscription').id, '\" -subscriptionPassword \"', variables('subscription').password, '\" -subscriptionUsername \"', variables('subscription').username, '\" -azurelocation \"', variables('location'), ' -clientId \"', parameters('spnDetails').clientId, '\" -clientSecret \"', parameters('spnDetails').clientSecret, '\" -tenantId \"', parameters('spnDetails').tenantId, '\" > windows-workstation.log')]"
           }
       }
     }

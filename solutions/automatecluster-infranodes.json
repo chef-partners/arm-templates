@@ -243,6 +243,18 @@
         "description": "Username to use to login to the subscription"
       },
       "defaultValue": ""
+    },
+
+    "spnDetails": {
+      "type": "secureObject",
+      "metadata": {
+        "description": "Object containing the SPN information that should be used for Test Kitchen"
+      },
+      "defaultValue": {
+        "clientId": "",
+        "clientSecret": "",
+        "tenantId": ""
+      }
     }
   },
 
@@ -377,6 +389,10 @@
 
             "subscriptionUsername": {
               "value": "[parameters('subscriptionUsername')]"
+            },
+
+            "spnDetails": {
+              "value": "[parameters('spnDetails')]"
             }
         }
       }
