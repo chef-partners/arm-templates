@@ -74,6 +74,19 @@
       "value": ""
     },
 
+    "infrastructureNodes": {
+      // Object stating how many infrastructure nodes are required and what machine these should be
+      // The environment should be set to whatever the acceptance environment will be
+      "value": {
+        "count": 1,
+        "platform": "windows",
+        "sku": "2012-R2-Datacenter",
+        "runlist": "recipe[training::default]",
+        "environment": "union",
+        "configuration": ""
+      }
+    },
+
     "spnDetails": {
       // Object stating the information required to create the Azure credentials file on the workstation
       // so that Test-Kitchen can be run on the machine

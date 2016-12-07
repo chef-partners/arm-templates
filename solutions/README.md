@@ -13,6 +13,7 @@ The `automatecluster.json` template will build a Chef Automate cluster with the 
   - Automate Server
   - Compliance Server
   - Build Node (1 by default)
+  - Workstation (Windows 2012 R2)
 
 The following diagram shows how the servers are configured in Azure
 
@@ -49,7 +50,6 @@ The parameters that are required are detailed in the following table.  A skeleto
 | automateVersion    | Version of Chef Automate to install                                              | no         |               |
 | userName           | User name to add to all the Chef components                                      | yes        |               |
 | userPassword       | Password to associate with the specified userName                                | yes        |               |
-| userSSHPublicKey   | Base64 encoded SSH Public key to associate with the user on the Automate server.  This is NOT for ssh access | yes | |
 | userEmailaddress   | Email address for the new user                                                   | yes        |               |
 | userFullname       | Fullname of the new user                                                         | yes        |               |
 | chefOrg            | Short name of the organisation to create on the Chef Server                      | yes        |               |
@@ -65,6 +65,8 @@ The parameters that are required are detailed in the following table.  A skeleto
 | shortUniqueLength  | The number of charactets from the storage account to append to the computer name | no         | 4             |
 | storageAccountType | Type of storage account to create                                                | no         | Standard_LRS  |
 | buildNodeCount     | Number of build nodes to created and configure                                   | no         | 1             |
+| vmSizes | JSON object containing the size of machines to create for each type of server | no | See `automatecluster.json` |
+| spnDetails | JSON object containing the necessary IDs for `Service Principal Name` to use Test-Kitchen | no | See `automatecluster.json` |
 
 
 **NB**: For the version parameters they are mandatory if the `scratch` template is being used.
@@ -166,3 +168,74 @@ This script is called `nested\scripts\setup-ctl.sh`.  The following operations a
 This server runs the Docker Engine and installs an `etcd` container.  This is what provides a REST based API for storing keys and secrets that other machines in the cluster require.  This is why the Orchestration server is the first machine to be built so it is in place before the other machines are deployed.
 
 Once the Docker container has been deployed the SSH keys are generated for the build nodes and added to the `etcd` store.  This is so that they are in place for when the build servers are deployed and when the Automate server bootstraps the build nodes.
+
+## Automate Cluster with Infrastructure nodes
+
+An additional template has been added to the repo that will not only create the above Automate Cluster but will add the specified number of Infrastructure nodes.
+
+The template is called `automatecluser-infranodes.json` and requires one additional parameter.  The extra parameter is detailed below.  Another distribution parameters file has also been created that contains this new parameter `automatecluster-infranodes.parameters.dist.json`
+
+### Parameters
+
+| Parameter          | Description                                                                      | Mandatory? | Default Value |
+|:-------------------|:---------------------------------------------------------------------------------|:-----------|:--------------|
+| infrastructureNodes             | A JSON object that cotains the information about the nodes to create          | yes        | See below              |
+
+An example of how to set this parameter can be seen below (and in the `automatecluster-infranodes.parameters.dist.json`) file.
+
+```json
+"infrastructureNodes": {
+  "value": {
+    "count": 1,
+    "platform": "windows",
+    "sku": "2012-R2-Datacenter",
+    "runlist": "recipe[training::default]",
+    "environment": "union",
+    "configuration": ""
+  }
+}
+```
+
+| Element Name | Description |
+|--------------|-------------|
+| count | Number of infrastructure nodes to create |
+| platform | The type of machine to create, `windows` or `linux` |
+| sku | The sku to use to create the machine.  This is from the Azure Marketplace |
+| runlist | The runlist to apply to the machine when it is bootstrapped with the Azure Chef Extension |
+| environment | The environment on the Chef server that this machine should belong to |
+| configuration | Any additional configuration that should be applied to the chef-client on the machine(s) |
+
+**NB** When using complex objects like this, it is important to remember that the entire object must _always_ be specified, it is not possible to override just one value.
+
+At the moment the infrastructure nodes are intended to be Windows machines even though different platforms can be specified.  This is because the configuration script for the nodes is a PowerShell script.
+
+## Azure Credentials
+
+As part of the workflow when developing cookbooks it is highly recommended that Test-Kitchen is used to test the cookbooks.  In this environment the Test-Kitchen AzureRM Driver (https://github.com/pendrica/kitchen-azurerm) is installed on the workstation.
+
+In order to use this a credentials file must be created: `~/.azure/credentials`.
+
+This file is created by the `woorkstation` cookbook in the `chefrepo.zip` file.  If the `spnDetails` parameter object has been filled out completely then `~/.azure/credentials` file will be created.
+
+An additional script has been added to this repo `scripts/azurecred.ps1` which is will create the necessary Service Principal Name (SPN) in the users Azure account so that Test-Kitchen is able to create machines in Azure.
+
+The script is a PowerShell script and must be run on Windows.  An example of how to use the script is show below:
+
+```powershell
+$> .\azurecreds.ps1 -AzureADServicePrincipalFriendlyName 'Chef Workshop SPN - RJS' -SubscriptionID <AZURE_SUBSCRIPTION_ID> -subscriptionPassword <SUBSCRIPTION_PASSWORD> -subscriptionUsername <SUBSCRIPTION_USERNAME>
+``` 
+
+**NB** This script _must_ be run in PowerShell with elevated privileges as it will download and install any missing PowerShell modules.
+
+This will create the credentials file in the `azure` directory of the users home directory that has run the command.  The details can then be copied from here into the template file.
+
+### Parameters
+
+The following table details the parameters that are required by the script
+
+| Parameter name | Description | Example |
+|----------------|-------------|---------|
+| AzureADServicePrincipalFriendlyName | Name of the SPN when seen in the Azure AD in the subscription | Chef Workshop SPN - RJS |
+| SubscriptionID | The ID of the subcription into which this SPN will be created | <UUID> |
+| SubscriptionUsername | Username of the account with permissions in the specified subscription id | rseymour@chef.io |
+| SubscriptionPassword | Password associated with the specified account | ******* |
