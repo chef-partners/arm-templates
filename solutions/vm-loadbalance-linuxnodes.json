@@ -215,7 +215,7 @@
         },
         "parameters": {
             "vmName": {
-              "value": "[variables('name').vm]"
+              "value": "[concat(parameters('name'), '-prod',  '-', copyIndex(1))]"
             },
             "computerName": {
               "value": "[variables('name').computer]"
