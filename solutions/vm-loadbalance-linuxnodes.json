@@ -275,9 +275,6 @@
   ],
 
   "outputs": {
-    "fqdn": {
-      "type": "string",
-      "value": "[reference(concat(variables('name').publicIPAddress, '-Deployment', '-', copyIndex(1))).outputs.fqdn.value]"
-    }
+    
   }
 }
