@@ -250,7 +250,7 @@
       "name": "[concat(variables('name').extension.chef, '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
       "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
+        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment', '-', copyIndex(1))]"
       ],
       "properties": {
         "mode": "Incremental",
