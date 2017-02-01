@@ -239,7 +239,7 @@
               "value": "[variables('image').sku]"
             },
             "nicRef": {
-              "value": "[reference(concat(variables('name').nic, '-Deployment', '-', copyIndex(1))).outputs.ref.value]"
+              "value": "[reference(concat(variables('name').nic, '-Deployment')).outputs.ref.value]"
             }
         }
       }
@@ -275,6 +275,6 @@
   ],
 
   "outputs": {
-    
+
   }
 }
