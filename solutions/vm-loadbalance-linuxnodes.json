@@ -15,7 +15,7 @@
       "metadata": {
         "description": "Username to be set on the machine, this is the name to be used for RDP access"
       },
-      "defaultValue": "azure"
+      "defaultValue": "chef"
     },
 
     "adminPassword": {
@@ -23,11 +23,6 @@
       "metadata": {
         "description": "Password to be associated with the specified username"
       }
-    },
-
-    "machineCount": {
-      "type": "int",
-      "defaultValue": 2
     },
 
     "subnetRef": {
@@ -72,7 +67,10 @@
       "metadata": {
         "description": "The platform for the machine"
       },
-      "defaultValue": "ubuntu"
+      "allowedValues": [
+        "windows",
+        "ubuntu"
+      ]
     },
 
     "chefData": {
@@ -203,10 +201,6 @@
       "type": "Microsoft.Resources/deployments",
       "name": "[concat(variables('name').vm, '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
-      "copy": {
-        "name": "machineCopy",
-        "count": "[parameters('machineCount')]"
-      },
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -215,7 +209,7 @@
         },
         "parameters": {
             "vmName": {
-              "value": "[concat(parameters('name'), '-prod',  '-', copyIndex(1))]"
+              "value": "[variables('name').vm]"
             },
             "computerName": {
               "value": "[variables('name').computer]"
@@ -275,6 +269,9 @@
   ],
 
   "outputs": {
-
+    "fqdn": {
+      "type": "string",
+      "value": "[reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value]"
+    }
   }
 }
