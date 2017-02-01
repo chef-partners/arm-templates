@@ -201,7 +201,7 @@
 
     {
       "type": "Microsoft.Resources/deployments",
-      "name": "[concat(variables('name').vm, '-Deployment', '-', copyIndex(1))]",
+      "name": "[concat(variables('name').vm, '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
       "copy": {
         "name": "machineCopy",
@@ -250,7 +250,7 @@
       "name": "[concat(variables('name').extension.chef, '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
       "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment', '-', copyIndex(1))]"
+        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
       ],
       "properties": {
         "mode": "Incremental",
