@@ -49,7 +49,7 @@
       "metadata": {
         "description": "Name of the container within the storage account into which the disks will be stored"
       },
-      "defaultValue": "vhds"
+      "defaultValue": "vmvhds"
     },
 
     "vmSize": {
