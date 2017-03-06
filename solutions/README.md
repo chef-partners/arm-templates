@@ -121,7 +121,7 @@ The following shows an example of the commands to use to create the Resource Gro
 
 ```bash
 azure group create "automate-cluster" "westeurope"
-azure group deployment create --template-uri https://raw.githubusercontent.com/chef-partners/arm-templates/automate/solutions/automatecluster.json \
+azure group deployment create --template-uri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/automatecluster.json \
 -e ./automatecluster.parameters.local.json \
 -g "automate-cluster" \
 -n "automate-deploy-1"
