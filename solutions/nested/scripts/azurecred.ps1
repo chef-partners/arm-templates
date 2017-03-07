@@ -74,7 +74,7 @@ $secpasswd = ConvertTo-SecureString $subscriptionPassword -AsPlainText -Force
 $creds = New-Object System.Management.Automation.PSCredential ($subscriptionUsername, $secpasswd)
 
 # Login to Azure
-Add-AzureRMAccount -Credential $creds -SubscriptionId $subscriptionId
+Add-AzureRMAccount -Credential $creds # -SubscriptionId $subscriptionId
 
 try
 {
