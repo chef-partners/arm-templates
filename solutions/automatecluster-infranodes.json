@@ -49,8 +49,8 @@
         "description": "Object stating the size of the machines that are to be created in this cluster"
       },
       "defaultValue": {
-        "orchestration": "Standard_D1_V2",
-        "buildnode": "Standard_D1_V2",
+        "orchestration": "Standard_DS1_V2",
+        "buildnode": "Standard_DS1_V2",
         "chefserver": "Standard_DS2_V2",
         "automateserver": "Standard_DS2_V2",
         "complianceserver": "Standard_DS2_V2",
@@ -255,6 +255,29 @@
         "clientSecret": "",
         "tenantId": ""
       }
+    },
+
+    "autoShutdown": {
+      "type": "object",
+      "metadata": {
+        "description": "Object specifying if Auto shutdown should be configured"
+      },
+      "defaultValue": {
+
+        "shutdown": {
+          "status": "Disabled",
+          "timezone": "UTC",
+          "time": "1900"
+        }
+      }
+    },
+
+    "unique": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique string to use for the storage account.  If not set it will be generated."
+      },
+      "defaultValue": "[uniqueString(subscription().subscriptionId, resourceGroup().id, deployment().name, parameters('prefix'))]"
     }
   },
 
@@ -393,6 +416,14 @@
 
             "spnDetails": {
               "value": "[parameters('spnDetails')]"
+            },
+
+            "unique": {
+              "value": "[parameters('unique')]"
+            },
+
+            "autoShutdown": {
+              "value": "[parameters('autoShutdown')]"
             }
         }
       }
@@ -461,6 +492,9 @@
               },
               "runlist": "[parameters('infrastructureNodes').runlist]"
             }
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
           }
         }
       }
