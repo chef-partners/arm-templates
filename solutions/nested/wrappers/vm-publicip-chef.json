@@ -85,6 +85,21 @@
     "NSGRef": {
       "type": "string",
       "defaultValue": ""
+    },
+    
+    "autoShutdown": {
+      "type": "object",
+      "metadata": {
+        "description": "Object specifying if Auto shutdown should be configured"
+      },
+      "defaultValue": {
+
+        "shutdown": {
+          "status": "Disabled",
+          "timezone": "UTC",
+          "time": "1900"
+        }
+      }
     }
   },
 
@@ -126,6 +141,7 @@
       "publicIPAddress": "[uri(deployment().properties.templateLink.uri, '../public-ipaddress/public-ipaddress.json')]",
       "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-publicip.json')]",
       "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-', parameters('machinePlatform'), '.json'))]",
+      "autoShutdown": "[uri(deployment().properties.templateLink.uri, '../auto-shutdown/auto-shutdown.json')]",
       "chefExtension": "[uri(deployment().properties.templateLink.uri, concat('../extensions/chef-extension-', parameters('machinePlatform'), '.json'))]"
     },
 
@@ -235,6 +251,30 @@
             "nicRef": {
               "value": "[reference(concat(variables('name').nic, '-Deployment')).outputs.ref.value]"
             }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').vm, '-AutoShutdown-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').autoShutdown]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[variables('name').vm]"
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
+          }
         }
       }
     },

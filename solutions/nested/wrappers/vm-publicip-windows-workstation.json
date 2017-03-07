@@ -126,6 +126,29 @@
         "clientSecret": "",
         "tenantId": ""
       }
+    },
+
+    "autoShutdown": {
+      "type": "object",
+      "metadata": {
+        "description": "Object specifying if Auto shutdown should be configured"
+      },
+      "defaultValue": {
+
+        "shutdown": {
+          "status": "Disabled",
+          "timezone": "UTC",
+          "time": "1900"
+        }
+      }
+    },
+
+    "automateServerFQDN": {
+      "type": "string"
+    },
+
+    "automateServerUrl": {
+      "type": "string"
     }
   },
 
@@ -166,6 +189,7 @@
     "urls": {
       "publicIPAddress": "[uri(deployment().properties.templateLink.uri, '../public-ipaddress/public-ipaddress.json')]",
       "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-publicip.json')]",
+      "autoShutdown": "[uri(deployment().properties.templateLink.uri, '../auto-shutdown/auto-shutdown.json')]",
       "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-windows.json'))]",
         "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/windows-workstation.ps1'))]"
     },
@@ -286,6 +310,30 @@
       }
     },
 
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').vm, '-AutoShutdown-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').autoShutdown]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[variables('name').vm]"
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
+          }
+        }
+      }
+    },
+
     /*
     Add the Windows Custom script extension to configure the workstation
     */
@@ -306,7 +354,7 @@
               "fileUris": [
                   "[variables('urls').configurationScript]"
               ],
-              "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File .\\windows-workstation.ps1 -operation \"chefdk,chefrepo,chefclient\" -chefdk_version 1.0.3 -chef_repo_url \"', parameters('chefRepoUrl'), '\" -chef_org \"', parameters('chefOrg'), '\" -chef_server_url \"', parameters('chefServerUrl'), '\" -chef_user \"', parameters('chefUser'), '\" -windows_password \"', parameters('adminPassword'), '\" -subscriptionId \"', variables('subscription').id, '\" -subscriptionPassword \"', variables('subscription').password, '\" -subscriptionUsername \"', variables('subscription').username, '\" -azurelocation \"', variables('location'), '\" -clientId \"', parameters('spnDetails').clientId, '\" -clientSecret \"', parameters('spnDetails').clientSecret, '\" -tenantId \"', parameters('spnDetails').tenantId, '\" > windows-workstation.log')]"
+              "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File .\\windows-workstation.ps1 -operation \"chefdk,chefrepo,chefclient\" -chefdk_version 1.0.3 -chef_repo_url \"', parameters('chefRepoUrl'), '\" -chef_org \"', parameters('chefOrg'), '\" -chef_server_url \"', parameters('chefServerUrl'), '\" -chef_user \"', parameters('chefUser'), '\" -windows_password \"', parameters('adminPassword'), '\" -subscriptionId \"', variables('subscription').id, '\" -subscriptionPassword \"', variables('subscription').password, '\" -subscriptionUsername \"', variables('subscription').username, '\" -azurelocation \"', variables('location'), '\" -clientId \"', parameters('spnDetails').clientId, '\" -clientSecret \"', parameters('spnDetails').clientSecret, '\" -tenantId \"', parameters('spnDetails').tenantId, '\" -automateServerFQDN \"', parameters('automateServerFQDN'), '\" -automateServerUrl \"', parameters('automateServerUrl'), '\" > windows-workstation.log')]"
           }
       }
     }
