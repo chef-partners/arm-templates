@@ -67,6 +67,21 @@
       "metadata": {
         "description": "Static IP address to set on the machine"
       }
+    },
+    
+    "autoShutdown": {
+      "type": "object",
+      "metadata": {
+        "description": "Object specifying if Auto shutdown should be configured"
+      },
+      "defaultValue": {
+
+        "shutdown": {
+          "status": "Disabled",
+          "timezone": "UTC",
+          "time": "1900"
+        }
+      }
     }
   },
 
@@ -111,7 +126,8 @@
       "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-static.json')]",
       "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-ubuntu.json'))]",
       "dockerExtension": "[uri(deployment().properties.templateLink.uri, concat('../extensions/docker-extension.json'))]",
-      "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/setup-ctl.sh'))]"
+      "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/setup-ctl.sh'))]",
+      "autoShutdown": "[uri(deployment().properties.templateLink.uri, '../auto-shutdown/auto-shutdown.json')]"
     },
 
     "apiVersions": {
@@ -193,6 +209,30 @@
 
     {
       "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').vm, '-AutoShutdown-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').autoShutdown]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[variables('name').vm]"
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
       "name": "[concat(variables('name').extension.docker, '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
       "dependsOn": [
@@ -234,7 +274,7 @@
           "fileUris": [
             "[variables('urls').configurationScript]"
           ],
-          "commandToExecute": "[concat('./setup-ctl.sh -m orchestration')]"
+          "commandToExecute": "[concat('./setup-ctl.sh -m orchestration --location ', resourceGroup().location)]"
         }
       },
       "location": "[resourceGroup().location]"

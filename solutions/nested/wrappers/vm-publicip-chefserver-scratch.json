@@ -90,6 +90,21 @@
         "description": "Object detailing the workspace id and key to configure OMS on the machine"
       },
       "defaultValue": {}
+    },
+    
+    "autoShutdown": {
+      "type": "object",
+      "metadata": {
+        "description": "Object specifying if Auto shutdown should be configured"
+      },
+      "defaultValue": {
+
+        "shutdown": {
+          "status": "Disabled",
+          "timezone": "UTC",
+          "time": "1900"
+        }
+      }
     }
   },
 
@@ -131,6 +146,7 @@
       "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-static-publicip.json')]",
       "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-ubuntu.json'))]",
       "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/setup-ctl.sh'))]",
+      "autoShutdown": "[uri(deployment().properties.templateLink.uri, '../auto-shutdown/auto-shutdown.json')]",
       "extensions": {
         "oms": "[uri(deployment().properties.templateLink.uri, concat('../monitoring/omsagent-linux-', parameters('omsAttributes').enable, '.json'))]"
       }
@@ -247,6 +263,30 @@
             "fqdn": {
               "value": "[reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value]"
             }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(variables('name').vm, '-AutoShutdown-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').autoShutdown]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[variables('name').vm]"
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
+          }
         }
       }
     },

@@ -66,7 +66,13 @@ param (
 
   [string]
   # tenant id
-  $tenantId
+  $tenantId,
+
+  [string]
+  $automateServerFQDN,
+
+  [string]
+  $automateServerUrl
 
 )
 
@@ -238,6 +244,10 @@ foreach ($mode in $modes) {
             default = @{
               home = $homedir
             }
+          }
+          automate = @{
+            fqdn = $automateServerFQDN
+            url = $automateServerUrl
           }
         }
         azure = @{

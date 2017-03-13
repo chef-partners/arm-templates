@@ -239,11 +239,34 @@
         "clientSecret": "",
         "tenantId": ""
       }
+    },
+
+    "autoShutdown": {
+      "type": "object",
+      "metadata": {
+        "description": "Object specifying if Auto shutdown should be configured"
+      },
+      "defaultValue": {
+
+        "shutdown": {
+          "status": "Disabled",
+          "timezone": "UTC",
+          "time": "1900"
+        }
+      }
+    },
+
+    "unique": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique string to use for the storage account.  If not set it will be generated."
+      },
+      "defaultValue": "[uniqueString(subscription().subscriptionId, resourceGroup().id, deployment().name, parameters('prefix'))]"
     }
   },
   "variables": {
 
-    "unique": "[uniqueString(subscription().subscriptionId, resourceGroup().id, deployment().name, parameters('prefix'))]",
+    "unique": "[parameters('unique')]",
     "uniqueShort": "[substring(variables('unique'), 0, parameters('shortUniqueLength'))]",
     "location": "[resourceGroup().location]",
 
@@ -454,6 +477,9 @@
           },
           "ipAddress": {
             "value": "[parameters('ipAddresses').orchestration]"
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
           }
         }
       }
@@ -509,6 +535,9 @@
           },
           "omsAttributes": {
             "value": "[variables('oms')]"
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
           }
         }
       }
@@ -560,6 +589,9 @@
           },
           "omsAttributes": {
             "value": "[variables('oms')]"
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
           }
         }
       }
@@ -618,6 +650,9 @@
           },
           "omsAttributes": {
             "value": "[variables('oms')]"
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
           }
         }
       }
@@ -669,6 +704,9 @@
           },
           "omsAttributes": {
             "value": "[variables('oms')]"
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
           }
         }
       }
@@ -730,6 +768,15 @@
           },
           "spnDetails": {
             "value": "[parameters('spnDetails')]"
+          },
+          "autoShutdown": {
+            "value": "[parameters('autoShutdown')]"
+          },
+          "automateServerFQDN": {
+            "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-AutomateServer').outputs.fqdn.value]"
+          },
+          "automateServerUrl": {
+            "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-AutomateServer').outputs.url.value]"
           }
         }
       }

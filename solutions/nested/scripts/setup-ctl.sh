@@ -61,6 +61,8 @@ CHEF_GATE_DEB_CHECKSUM="778bd4aab9ac5a0d79c97f814ffa10551aa71971fa14936cbfbb43cf
 BUILD_NODE_PREFIX=""
 BUILD_NODE_COUNT=0
 
+LOCATION=""
+
 #
 # Do not change the variables below this
 #
@@ -81,8 +83,20 @@ function executeCmd()
   then
     echo $localcmd
   else
+    # Output the command to STDOUT as well so that it is logged inline with the error that are being seen
     echo $localcmd
+
+    # if a command log does not exist create one
+    if [ ! -f commands.log ]
+    then
+      touch commands.log
+    fi
+
+    # Output the commands to the log file
+    echo $localcmd >> commands.log
+
     eval $localcmd
+
   fi
 }
 
@@ -287,6 +301,11 @@ do
       BUILD_NODE_COUNT=$1
     ;;
 
+    --location)
+      shift
+      LOCATION=$1
+    ;;
+
     -D|--dryrun)
       DRY_RUN=1
     ;;
@@ -393,9 +412,12 @@ do
         cmd=$(printf 'chef-server-ctl user-create %s %s %s "%s" --filename %s.pem' $CHEF_USER_NAME $CHEF_USER_FULLNAME $CHEF_USER_EMAILADDRESS $CHEF_USER_PASSWORD $CHEF_USER_NAME)
         executeCmd $cmd
 
-        # Create the organisation
-        cmd=$(printf 'chef-server-ctl org-create %s "%s" --association_user %s --filename %s-validator.pem' $CHEF_ORGNAME $CHEF_ORG_DESCRIPTION $CHEF_USER_NAME $CHEF_ORGNAME)
-        executeCmd $cmd
+        # Create a specific organisation if one has been set that is not Delivery
+        if [ "$CHEF_ORGNAME" != "delivery" ]
+        then
+          cmd=$(printf 'chef-server-ctl org-create %s "%s" --association_user %s --filename %s-validator.pem' $CHEF_ORGNAME $CHEF_ORG_DESCRIPTION $CHEF_USER_NAME $CHEF_ORGNAME)
+          executeCmd $cmd
+        fi
 
         # Create the delivery user
         cmd=$(printf 'chef-server-ctl user-create delivery Delivery User delivery@fakedomain.com "Password123!" --filename delivery.pem')
@@ -412,6 +434,10 @@ do
         # If an orchestration server has been specified then add the keys to it
         if [ "X$ORCHESTRATION_SERVER" != "X" ]
         then
+
+          # Add the user password to the orchestration server so that it can be extracted to run commands
+          cmd=$(printf 'curl %s/v2/keys/automate/user/password -XPUT -d value="%s"' $ORCHESTRATION_SERVER $CHEF_USER_PASSWORD)
+          executeCmd $cmd
 
           # As an orchestration server has been set then it must be part of an automate cluster
           # Create the data_token to be used and add to the orchestration server
@@ -444,11 +470,19 @@ do
           cmd=$(echo data_collector[\'token\']=\"`cat data_token`\" >> $CHEF_SERVER_FILE)
           executeCmd $cmd
 
-          cmd=$(printf 'curl %s/v2/keys/%s/validator -XPUT -d value="`cat %s-validator.pem | base64`"' $ORCHESTRATION_SERVER $CHEF_ORGNAME $CHEF_ORGNAME)
-          executeCmd $cmd
-
+          # Upload the validation key for the org if it is not delivery
+          if [ "$CHEF_ORGNAME" != "delivery" ]
+          then
+            cmd=$(printf 'curl %s/v2/keys/%s/validator -XPUT -d value="`cat %s-validator.pem | base64`"' $ORCHESTRATION_SERVER $CHEF_ORGNAME $CHEF_ORGNAME)
+            executeCmd $cmd
+          fi
+          
           cmd=$(printf 'curl %s/v2/keys/%s/user/%s -XPUT -d value="`cat %s.pem | base64`"' $ORCHESTRATION_SERVER $CHEF_ORGNAME $CHEF_USER_NAME $CHEF_USER_NAME)
           executeCmd $cmd
+
+          # Add the delivery validator to the orchestration server
+          cmd=$(printf 'curl %s/v2/keys/delivery/validator -XPUT -d value="`cat delivery-validator.pem | base64`"' $ORCHESTRATION_SERVER)
+            executeCmd $cmd
 
           cmd=$(printf 'curl %s/v2/keys/delivery/user/delivery -XPUT -d value="`cat delivery.pem | base64`"' $ORCHESTRATION_SERVER)
           executeCmd $cmd
@@ -557,6 +591,9 @@ do
         cmd=$(printf 'curl %s/v2/keys/automate/user/sshkey/public | jq -r .node.value | base64 -d > user.pub.key' $ORCHESTRATION_SERVER)
         executeCmd $cmd
 
+        # Wait for 30 seconds to allow the processes to startup correctly
+        sleep 30
+
         cmd=$(printf 'delivery-ctl create-user Delivery %s --password %s --roles admin --ssh-pub-key-file $PWD/user.pub.key' $CHEF_USER_NAME $CHEF_USER_PASSWORD)
         executeCmd $cmd
 
@@ -568,8 +605,8 @@ do
         executeCmd $cmd
       
         # Add the user password to the orchestration server so that it can be extracted to run commands
-        cmd=$(printf 'curl %s/v2/keys/automate/user/password -XPUT -d value="%s"' $ORCHESTRATION_SERVER $CHEF_USER_PASSWORD)
-        executeCmd $cmd
+        #cmd=$(printf 'curl %s/v2/keys/automate/user/password -XPUT -d value="%s"' $ORCHESTRATION_SERVER $CHEF_USER_PASSWORD)
+        #executeCmd $cmd
 
       fi
 
@@ -630,6 +667,9 @@ do
         cmd="chef-compliance-ctl restart core"
         executeCmd $cmd
 
+        # Wait for compliance to come up properly before installing chef-gate on the chef server
+        sleep 45
+
         # Extract the command that needs to be run on the chef server from the compliance.out file
         `cat compliance.out | grep 'CHEF_APP_ID' > chef_gate.sh`
 
@@ -650,7 +690,12 @@ do
 
         # Reconfigure the compliance server
         cmd="chef-compliance-ctl reconfigure"
-        executeCmd $cmd        
+        executeCmd $cmd
+
+        # Sleep again and then restart the chef server
+        sleep 45        
+        cmd=$(printf 'ssh -oStrictHostKeyChecking=no -i /root/.ssh/chef_server_key -t -t compliance@%s sudo chef-server-ctl restart > chef.out' $chef_fqdn)
+        executeCmd $cmd
 
       fi
     ;;
@@ -746,6 +791,7 @@ do
 
       cmd=$(printf 'curl http://127.0.0.1:4001/v2/keys/automate/user/sshkey/private -XPUT -d value="`cat /root/automateuser | base64`"')
       executeCmd $cmd
+
     ;;
 
   esac

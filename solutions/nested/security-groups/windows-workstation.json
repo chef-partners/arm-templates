@@ -1,0 +1,53 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "groupName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the security group"
+      },
+      "defaultValue": "ChefServers-NSG"
+    },
+    "location": {
+      "type": "string"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[parameters('groupName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "RDP-3389",
+            "properties": {
+              "description": "Allow RDP port 3389 traffic",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "nsgId": {
+      "value": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('groupName'))]",
+      "type": "string"
+    },
+    "groupName": {
+      "type": "string",
+      "value": "[parameters('groupName')]"
+    }
+  }
+}
