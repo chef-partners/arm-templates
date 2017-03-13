@@ -135,9 +135,9 @@ _PowerShell_
 
 ```powershell
 New-AzureRmResourceGroup -Name "automate-cluster" -Location "westeurope"
-New-AzureRmResourceGroupDeployment -TemplateUri https://raw.githubusercontent.com/chef-partners/arm-templates/automate/solutions/automatecluster.json `
+New-AzureRmResourceGroupDeployment -TemplateUri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/automatecluster.json `
 -TemplateParameterFile automatecluster.parameters.local.json `
--ResourceGroupName "automate-cluster"
+-ResourceGroupName "automate-cluster" `
 -Name "automate-deploy-1"
 ```
 
