@@ -19,9 +19,9 @@
       "type": "string"
     },
 
-    "windowsMachineCount": {
+    "linuxMachineCount": {
       "type": "int",
-      "defaultValue": 20
+      "defaultValue": 5
     },
 
     "virtualNetworkName": {
@@ -179,50 +179,11 @@
 
     {
       "type": "Microsoft.Resources/deployments",
-      "name": "[concat(parameters('prefix'), '-prod-', variables('uniqueShort'), '-Deployment')]",
-      "apiVersion": "[variables('apiVersions').deployments]",
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('urls').vmPublicIPChef]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "name": {
-            "value": "[concat(parameters('prefix'), '-dev-', variables('uniqueShort'), '-1')]"
-          },
-          "adminPassword": {
-            "value": "[parameters('adminPassword')]"
-          },
-          "adminUsername": {
-            "value": "[parameters('adminUsername')]"
-          },
-          "subnetRef": {
-            "value": "[variables('ref').subnet]"
-          },
-          "storageAccountName": {
-            "value": "[variables('name').sa.name]"
-          },
-          "imageSku": {
-            "value": "2012-R2-Datacenter"
-          },
-          "machinePlatform": {
-            "value": "windows"
-          },
-          "chefData": {
-            "value": "[variables('chef')]"
-          }
-        }
-      }
-    },
-
-    {
-      "type": "Microsoft.Resources/deployments",
       "name": "[concat(parameters('prefix'), '-prod-', variables('uniqueShort'), '-', copyIndex(1), '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
       "copy": {
         "name": "windowsCopy",
-        "count": "[parameters('windowsMachineCount')]"
+        "count": "[parameters('linuxMachineCount')]"
       },
       "properties": {
         "mode": "Incremental",
@@ -247,10 +208,10 @@
             "value": "[variables('name').sa.name]"
           },
           "imageSku": {
-            "value": "2012-R2-Datacenter"
+            "value": "16.04.0-LTS"
           },
           "machinePlatform": {
-            "value": "windows"
+            "value": "linux"
           },
           "chefData": {
             "value": "[variables('chef')]"
