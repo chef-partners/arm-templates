@@ -209,6 +209,58 @@ An example of how to set this parameter can be seen below (and in the `automatec
 
 At the moment the infrastructure nodes are intended to be Windows machines even though different platforms can be specified.  This is because the configuration script for the nodes is a PowerShell script.
 
+## Chef Nodes
+
+Three new templates have been added to the solutions directory.  These are for creating machines that will be managed Chef nodes:
+
+1. Create x Linux Nodes
+2. Create x Windows Nodes
+3. Create x Linux and Windows Nodes
+
+**NB** The third template uses the first two templates as linked templates.
+
+These are intended to be used after the Automate Cluster has been built.  There is an example parameters file for the third template, the only difference here is that both the `linuxMachineCount` and `windowsMachineCount` are specified.
+
+The following table shows the parameters that can be passed into the templates.
+
+| Name | Description | Default Value | Comments |
+|------|-------------|---------------|----------|
+| prefix | Prefix that will be applied to the VM and hostname and DNS name | | |
+| adminUsername | Default username for login | azure | |
+| adminPassword | Password to be assigned to the admin user | | |
+| linuxMachineCount | Number of Linux machines to be created | 5 | Only for `chef-nodes.json` and `chef-nodes-linux.json` |
+| windowsMachineCount | Number of Windows machines to be created | 5 | Only for `chef-nodes.json` and `chef-nodes-windows.json` |
+| virtualNetworkName | Name of the existing network the machines should connect to | | |
+| subnetName | Name of the subnet in the virtual network for the network adapater | | |
+| networkRG | Resource Group that the virtual network resides in | | |
+| shortUniqueLength | Length of the uniqueness in the machine names | 4 | |
+| chefServerUrl | URL to the chef server | | |
+| chefValidatorName | Name of the validator key | | | 
+| chefRunList | Runlist to be applied to the machines | | |
+| chefNodeSSLVerifyMode | SSL verification mode. | peer | If using self signed certificates set this to `none` |
+| chefEnvironment | Chef environment the machine should be part of | _default | |
+| chefClientConfiguration | Extra configuration that should be added to the `client.rb` file on the machine | | |
+| chefValidatorKey | Base64 encoded validation key | | |
+
+Deployment of the nodes is performed in the same way as all the other templates in this folder.  Due to the linking of templates it has to be deployed using a public URL that Azure has access to.  For example:
+
+```bash
+azure group deployment create --template-uri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/chef-nodes.json \
+-e ./chef-nodes.parameters.json \
+-g "automate-cluster" \
+-n "automate-deploy-1"
+```
+
+```powershell
+New-AzureRmResourceGroup -Name "automate-cluster" -Location "westeurope"
+New-AzureRmResourceGroupDeployment -TemplateUri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/chef-nodes.json `
+-TemplateParameterFile chef-nodes.parameters.json `
+-ResourceGroupName "automate-cluster" `
+-Name "automate-deploy-1"
+```
+
+Due to the fact that the resource group for the network has to be specified it is perfectly reasonable to create the Chef nodes in a different resource group.  This can assist with management of the machines.
+
 ## Azure Credentials
 
 As part of the workflow when developing cookbooks it is highly recommended that Test-Kitchen is used to test the cookbooks.  In this environment the Test-Kitchen AzureRM Driver (https://github.com/pendrica/kitchen-azurerm) is installed on the workstation.

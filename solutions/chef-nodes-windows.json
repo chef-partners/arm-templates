@@ -1,0 +1,245 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.4",
+  "parameters": {
+
+    "prefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Prefix to be assigned to each of the servers"
+      }
+    },
+
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "azure"
+    },
+
+    "adminPassword": {
+      "type": "string"
+    },
+
+    "windowsMachineCount": {
+      "type": "int",
+      "defaultValue": 5
+    },
+
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the virtual network in which the subnet exists"
+      }
+    },
+
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the subnet into which the machines should be connected"
+      }
+    },
+
+    "networkRG": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the resource group that the network is in"
+      }
+    },
+
+
+    "shortUniqueLength": {
+      "type": "int",
+      "defaultValue": 4
+    },
+
+    "chefServerUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URL for the chef server to register against"
+      },
+      "defaultValue": ""
+    },
+
+    "chefValidatorName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the validator key"
+      },
+      "defaultValue": ""
+    },
+
+    "chefRunlist": {
+      "type": "string",
+      "metadata": {
+        "description": "Runlist to apply to the machine"
+      },
+      "defaultValue": ""
+    },
+
+    "chefNodeSSLVerifyMode": {
+      "type": "string",
+      "metadata": {
+        "description": "State if the mode for SSL verification"
+      },
+      "allowedValues": [
+        "peer",
+        "none"
+      ],
+      "defaultValue": "peer"
+    },
+
+    "chefEnvironment": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment that the machines should be added to"
+      },
+      "defaultValue": "_default"
+    },
+
+    "chefClientConfiguration": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Additional Client configuration to be applied to the Chef extension"
+      },
+      "defaultValue": ""
+    },
+
+    "chefValidatorKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The key for the named validator"
+      },
+      "defaultValue": ""
+    },
+
+    "unique": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique string used for the storage account"
+      },
+      "defaultValue": "[uniqueString(subscription().subscriptionId, resourceGroup().id, deployment().name, parameters('prefix'))]"
+    },
+
+    "vmType": {
+      "type": "string",
+      "metadata": {
+        "description": "String to assist in the naming of the machine.  By default this is set to 'svr' but can be anything.  Be careful with name length as this is used in the hostname of the machine.  This has a maxium of 15 characters."
+      },
+      "defaultValue": "svr"
+    }
+  },
+
+  "variables": {
+
+    "unique": "[parameters('unique')]",
+    "uniqueShort": "[substring(variables('unique'), 0, parameters('shortUniqueLength'))]",
+
+    "location": "[resourceGroup().location]",
+
+    "name": {
+
+      "sa": {
+        "name": "[variables('unique')]"
+      }
+    },
+
+    "ref": {
+      "subnet": "[resourceId(parameters('networkRG'), 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]"
+    },
+
+    "urls": {
+      "storageAccount": "[uri(deployment().properties.templateLink.uri, 'nested/storage-account/storage-account.json')]",
+      "vmPublicIPChef": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-chef.json')]"
+    },
+
+    "apiVersions": {
+      "deployments": "2016-02-01"
+    },
+
+    "chef": {
+      "serverUrl": "[parameters('chefServerUrl')]",
+      "validator": {
+        "name": "[parameters('chefValidatorName')]",
+        "key": "[parameters('chefValidatorKey')]"
+      },
+      "node": {
+        "configuration": "[parameters('chefClientConfiguration')]",
+        "environment": "[parameters('chefEnvironment')]",
+        "sslVerifyMode": "[parameters('chefNodeSSLVerifyMode')]"
+      },
+      "runList": "[parameters('chefRunlist')]"
+    }
+  },
+
+  "resources": [
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "StorageAccountSetup",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "properties": {
+      "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').storageAccount]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "storageAccountName": {
+            "value": "[variables('name').sa.name]"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "[concat(parameters('prefix'), '-', parameters('vmType'), '-', variables('uniqueShort'), '-', copyIndex(1), '-Deployment')]",
+      "apiVersion": "[variables('apiVersions').deployments]",
+      "copy": {
+        "name": "windowsCopy",
+        "count": "[parameters('windowsMachineCount')]"
+      },
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').vmPublicIPChef]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "name": {
+            "value": "[concat(parameters('prefix'), '-', parameters('vmType'), '-', variables('uniqueShort'), '-', copyIndex(1))]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "subnetRef": {
+            "value": "[variables('ref').subnet]"
+          },
+          "storageAccountName": {
+            "value": "[variables('name').sa.name]"
+          },
+          "imageSku": {
+            "value": "2012-R2-Datacenter"
+          },
+          "machinePlatform": {
+            "value": "windows"
+          },
+          "chefData": {
+            "value": "[variables('chef')]"
+          }
+        }
+      }
+    }
+
+  ],
+
+  "outputs": {
+
+    
+  }
+}
