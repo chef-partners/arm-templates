@@ -109,12 +109,28 @@
         "description": "The key for the named validator"
       },
       "defaultValue": ""
+    },
+
+    "unique": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique string used for the storage account"
+      },
+      "defaultValue": "[uniqueString(subscription().subscriptionId, resourceGroup().id, deployment().name, parameters('prefix'))]"
+    },
+
+    "vmType": {
+      "type": "string",
+      "metadata": {
+        "description": "String to assist in the naming of the machine.  By default this is set to 'svr' but can be anything.  Be careful with name length as this is used in the hostname of the machine.  This has a maxium of 15 characters."
+      },
+      "defaultValue": "svr"
     }
   },
 
   "variables": {
 
-    "unique": "[uniqueString(subscription().subscriptionId, resourceGroup().id, deployment().name, parameters('prefix'))]",
+    "unique": "[parameters('unique')]",
     "uniqueShort": "[substring(variables('unique'), 0, parameters('shortUniqueLength'))]",
 
     "location": "[resourceGroup().location]",
@@ -179,7 +195,7 @@
 
     {
       "type": "Microsoft.Resources/deployments",
-      "name": "[concat(parameters('prefix'), '-prod-', variables('uniqueShort'), '-', copyIndex(1), '-Deployment')]",
+      "name": "[concat(parameters('prefix'), '-', parameters('vmType'), '-', variables('uniqueShort'), '-', copyIndex(1), '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
       "copy": {
         "name": "windowsCopy",
@@ -193,7 +209,7 @@
         },
         "parameters": {
           "name": {
-            "value": "[concat(parameters('prefix'), '-prod-', variables('uniqueShort'), '-', copyIndex(1))]"
+            "value": "[concat(parameters('prefix'), '-', parameters('vmType'), '-', variables('uniqueShort'), '-', copyIndex(1))]"
           },
           "adminPassword": {
             "value": "[parameters('adminPassword')]"

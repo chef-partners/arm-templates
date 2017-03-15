@@ -11,10 +11,6 @@
       "value": ""
     },
 
-    "linuxMachineCount": {
-      "value": 5
-    },
-
     "windowsMachineCount": {
       "value": 5
     },
@@ -44,6 +40,10 @@
     },
 
     "chefValidatorKey": {
+      "value": ""
+    },
+
+    "chefNodeSSLVerifyMode": {
       "value": ""
     }
   }

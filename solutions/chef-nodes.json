@@ -119,9 +119,15 @@
 
   "variables": {
 
+    "unique": "[uniqueString(subscription().subscriptionId, resourceGroup().id, deployment().name, parameters('prefix'))]",
+
     "urls": {
       "nodes_linux": "[uri(deployment().properties.templateLink.uri, 'chef-nodes-linux.json')]",
       "nodes_windows": "[uri(deployment().properties.templateLink.uri, 'chef-nodes-windows.json')]"
+    },
+
+    "apiVersions": {
+      "deployments": "2016-02-01"
     }
   },
 
@@ -136,7 +142,7 @@
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('urls').nodes_linux]",
-          "contentVersion": "1.0.0.0"
+          "contentVersion": "1.0.0.4"
         },
         "parameters": {
           "prefix": {
@@ -162,6 +168,9 @@
           },
           "shortUniqueLength": {
             "value": "[parameters('shortUniqueLength')]"
+          },
+          "unique": {
+            "value": "[variables('unique')]"
           },
           "chefServerUrl": {
             "value": "[parameters('chefServerUrl')]"
@@ -195,8 +204,8 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[variables('urls').nodes_linux]",
-          "contentVersion": "1.0.0.0"
+          "uri": "[variables('urls').nodes_windows]",
+          "contentVersion": "1.0.0.4"
         },
         "parameters": {
           "prefix": {
@@ -222,6 +231,9 @@
           },
           "shortUniqueLength": {
             "value": "[parameters('shortUniqueLength')]"
+          },
+          "unique": {
+            "value": "[variables('unique')]"
           },
           "chefServerUrl": {
             "value": "[parameters('chefServerUrl')]"
