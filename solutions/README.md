@@ -12,7 +12,7 @@ The following templates are available:
  - **chef-nodes-linux.json** - Create the specified number of Linux nodes
  - **chef-nodes-windows.json** - Create the specified number of Windows nodes
 
-## Automate Cluster Template with Infrastructure Nodes
+## Automate Cluster Template
 
 The `automatecluster-infranodes.json` template will build a Chef Automate cluster with the following items:
 
@@ -76,17 +76,6 @@ The parameters that are required are detailed in the following table.  A skeleto
 | buildNodeCount     | Number of build nodes to created and configure                                   | no         | 1             |
 | vmSizes | JSON object containing the size of machines to create for each type of server | no | See `automatecluster.json` |
 | spnDetails | JSON object containing the necessary IDs for `Service Principal Name` to use Test-Kitchen | no | See `automatecluster.json` |
-
-A new parameter object has been added that controls the Infrastructure Nodes that are added to the cluster.  This object has the following attributes:
-
-| Attribute | Description | Mandatory? | Default |
-|-----------|-------------|------------|---------|
-| count | Number of infrastructure nodes to create | yes | 1 |
-| platform | Platform for the infra nodes | yes | windows |
-| sku | The Microsoft Windows SKU to use for the platform | yes | 2012-R2-Datacenter |
-| runlist | The Chef run list to apply to the machines | yes | null |
-| environment | The environment to add these machines to | yes | acceptance |
-| configuration | Additional configuration to pass to the chef-client on the node | yes | null |
 
 
 **NB**: For the version parameters they are mandatory if the `scratch` template is being used.
