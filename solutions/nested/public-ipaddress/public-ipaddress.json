@@ -41,6 +41,9 @@
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[parameters('publicIPAddressName')]",
       "location": "[parameters('location')]",
+      "tags": {
+        "provider": "33194f91-eb5f-4110-827a-e95f640a9e46"
+      },
       "properties": {
         "publicIPAllocationMethod": "[parameters('publicIPAddressType')]",
         "dnsSettings": {

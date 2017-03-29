@@ -32,6 +32,9 @@
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[parameters('virtualNetworkName')]",
             "location": "[parameters('location')]",
+            "tags": {
+              "provider": "33194f91-eb5f-4110-827a-e95f640a9e46"
+            },
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
