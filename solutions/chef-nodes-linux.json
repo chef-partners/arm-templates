@@ -175,27 +175,6 @@
 
     {
       "type": "Microsoft.Resources/deployments",
-      "name": "StorageAccountSetup",
-      "apiVersion": "[variables('apiVersions').deployments]",
-      "properties": {
-      "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('urls').storageAccount]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "location": {
-            "value": "[variables('location')]"
-          },
-          "storageAccountName": {
-            "value": "[variables('name').sa.name]"
-          }
-        }
-      }
-    },
-
-    {
-      "type": "Microsoft.Resources/deployments",
       "name": "[concat(parameters('prefix'), '-', parameters('vmType'), '-', variables('uniqueShort'), '-', copyIndex(1), '-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
       "copy": {

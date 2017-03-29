@@ -363,30 +363,6 @@
 
     {
       "type": "Microsoft.Resources/deployments",
-      "name": "AutomateCluster-StorageAccount",
-      "apiVersion": "2016-02-01",
-      "properties": {
-          "mode": "Incremental",
-          "templateLink": {
-            "uri": "[variables('urls').storageAccount]",
-            "contentVersion": "1.0.0.0"
-          },
-          "parameters": {
-            "location": {
-              "value": "[variables('location')]"
-            },
-            "storageAccountType": {
-              "value": "[variables('storageAccountType')]"
-            },
-            "storageAccountName": {
-              "value": "[variables('name').storageAccountName]"
-            }
-          }
-      }
-    },
-
-    {
-      "type": "Microsoft.Resources/deployments",
       "name": "AutomateCluster-NSG",
       "apiVersion": "2016-02-01",
       "properties": {
@@ -444,7 +420,6 @@
       "name": "AutomateCluster-OrchestrationServer",
       "apiVersion": "2016-02-01",
       "dependsOn": [
-        "Microsoft.Resources/deployments/AutomateCluster-StorageAccount",
         "Microsoft.Resources/deployments/AutomateCluster-VirtualNetwork"
       ],
       "properties": {
