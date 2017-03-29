@@ -7,3 +7,4 @@
 .ruby-version
 *.parameters.local.json
 local
+.thor

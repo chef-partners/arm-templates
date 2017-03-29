@@ -4,15 +4,24 @@ This sub directory of the main repo holds templates that build up complete envir
 
 Templates make use of the linked template functionality in Azure to make the various components much more manageable.  This means that when a deployment is called the URI to the template file must be specified as it is from this that Azure can work out the full URLs to the other templates.
 
-## Automate Cluster Template
+The following templates are available:
 
-The `automatecluster.json` template will build a Chef Automate cluster with the following items:
+ - **automate-workstation.json** - Create a new workstation in the Chef Automate cluster
+ - **automatecluster-infranodes.json** - Create a Chef Automate Cluster with Infrastructure nodes (example follows)
+ - **automatecluster.json** - Create a Chef Automate Cluster
+ - **chef-nodes-linux.json** - Create the specified number of Linux nodes
+ - **chef-nodes-windows.json** - Create the specified number of Windows nodes
+
+## Automate Cluster Template with Infrastructure Nodes
+
+The `automatecluster-infranodes.json` template will build a Chef Automate cluster with the following items:
 
   - Orchestration Server (used to pass around keys and password)
   - Chef Server
   - Automate Server
   - Compliance Server
   - Build Node (1 by default)
+  - Infrastructure Node (1 by default)
   - Workstation (Windows 2012 R2)
 
 The following diagram shows how the servers are configured in Azure
@@ -37,7 +46,7 @@ Enabling OMS Monitoring is optional, and by default is turned off.
 
 ### Parameters
 
-The parameters that are required are detailed in the following table.  A skeleton version of this file is available to edit called `automatecluster.parameters.dist.json`.
+The parameters that are required are detailed in the following table.  A skeleton version of this file is available to edit called `automate-infranodes.parameters.dist.json`.
 
 | Parameter          | Description                                                                      | Mandatory? | Default Value |
 |:-------------------|:---------------------------------------------------------------------------------|:-----------|:--------------|
@@ -67,6 +76,17 @@ The parameters that are required are detailed in the following table.  A skeleto
 | buildNodeCount     | Number of build nodes to created and configure                                   | no         | 1             |
 | vmSizes | JSON object containing the size of machines to create for each type of server | no | See `automatecluster.json` |
 | spnDetails | JSON object containing the necessary IDs for `Service Principal Name` to use Test-Kitchen | no | See `automatecluster.json` |
+
+A new parameter object has been added that controls the Infrastructure Nodes that are added to the cluster.  This object has the following attributes:
+
+| Attribute | Description | Mandatory? | Default |
+|-----------|-------------|------------|---------|
+| count | Number of infrastructure nodes to create | yes | 1 |
+| platform | Platform for the infra nodes | yes | windows |
+| sku | The Microsoft Windows SKU to use for the platform | yes | 2012-R2-Datacenter |
+| runlist | The Chef run list to apply to the machines | yes | null |
+| environment | The environment to add these machines to | yes | acceptance |
+| configuration | Additional configuration to pass to the chef-client on the node | yes | null |
 
 
 **NB**: For the version parameters they are mandatory if the `scratch` template is being used.
@@ -115,16 +135,18 @@ In order to use the template a parameters file needs to be populated, use the di
 
 As the template uses the `uri()` template function the path to the template file must be specified as a URL.
 
-_Azure Xplat CLI_
+_Azure Command Line 2.0_
+
+**The commands have been updated to use the new `az` command line tool.  Please refer [here](https://azure.microsoft.com/en-gb/blog/announcing-general-availability-of-vm-storage-and-network-azure-cli-2-0/) for more information.
 
 The following shows an example of the commands to use to create the Resource Group.  The name of the group and the location should be changed to match own requirements.
 
 ```bash
-azure group create "automate-cluster" "westeurope"
-azure group deployment create --template-uri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/automatecluster.json \
--e ./automatecluster.parameters.local.json \
--g "automate-cluster" \
--n "automate-deploy-1"
+az group create -n "automate-cluster" -l "westeurope"
+az group deployment create --template-uri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/automatecluster.json \
+--parameters @./automatecluster.parameters.local.json \
+-g "automate-cluster"
+=n "automate-deploy-1"
 ```
 
 When using the URL for the template file ensure that it points to a public address that Azure can see and if using GitHub it points to the correct branch.
@@ -245,8 +267,8 @@ The following table shows the parameters that can be passed into the templates.
 Deployment of the nodes is performed in the same way as all the other templates in this folder.  Due to the linking of templates it has to be deployed using a public URL that Azure has access to.  For example:
 
 ```bash
-azure group deployment create --template-uri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/chef-nodes.json \
--e ./chef-nodes.parameters.json \
+az group deployment create --template-uri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/chef-nodes.json \
+--parameters @./chef-nodes.parameters.json \
 -g "automate-cluster" \
 -n "automate-deploy-1"
 ```
@@ -267,7 +289,7 @@ As part of the workflow when developing cookbooks it is highly recommended that 
 
 In order to use this a credentials file must be created: `~/.azure/credentials`.
 
-This file is created by the `woorkstation` cookbook in the `chefrepo.zip` file.  If the `spnDetails` parameter object has been filled out completely then `~/.azure/credentials` file will be created.
+This file is created by the `workstation` cookbook in the `chefrepo.zip` file.  If the `spnDetails` parameter object has been filled out completely then `~/.azure/credentials` file will be created.
 
 An additional script has been added to this repo `scripts/azurecred.ps1` which is will create the necessary Service Principal Name (SPN) in the users Azure account so that Test-Kitchen is able to create machines in Azure.
 
