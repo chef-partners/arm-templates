@@ -47,6 +47,9 @@
       "name": "[variables('name').nic]",
       "apiVersion": "[variables('apiVersions').networkInterfaces]",
       "location": "[variables('location')]",
+      "tags": {
+        "provider": "33194f91-eb5f-4110-827a-e95f640a9e46"
+      },
       "properties": {
         "ipConfigurations": [
           {
