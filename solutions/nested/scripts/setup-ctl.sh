@@ -360,7 +360,7 @@ do
         echo "Checking Automate Server"
 
         # Determine the download path for the chef server
-        download_url=$(printf 'https://packages.chef.io/files/stable/automate/%s/ubuntu/16.04/delivery_%s-1_amd64.deb' $AUTOMATE_SERVER_VERSION)
+        download_url=$(printf 'https://packages.chef.io/files/stable/automate/%s/ubuntu/16.04/delivery_%s-1_amd64.deb' $AUTOMATE_SERVER_VERSION $AUTOMATE_SERVER_VERSION)
 
         install delivery-ctl $download_url 
       fi
