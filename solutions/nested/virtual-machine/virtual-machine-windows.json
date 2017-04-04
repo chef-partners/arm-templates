@@ -78,7 +78,7 @@
     "vmSize": "[parameters('vmSize')]",
 
     "apiVersions": {
-      "virtualMachines": "2015-06-15"
+      "virtualMachines": "2016-04-30-preview"
     },
 
     "image": {
@@ -115,21 +115,15 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "osdisk",
-            "vhd": {
-              "uri": "[concat('http://', variables('name').sa.name,'.blob.core.windows.net/', variables('name').sa.containerName,'/',variables('name').disk.os,'.vhd')]"
-            },
-            "caching": "ReadWrite",
+            "name": "[variables('name').disk.os]",
+            "caching": "ReadOnly",
             "createOption": "FromImage"
           },
           "dataDisks": [
             {
-              "name": "datadisk1",
+              "name": "[variables('name').disk.data]",
               "diskSizeGB": "100",
               "lun": 0,
-              "vhd": {
-                "uri": "[concat('http://', variables('name').sa.name, '.blob.core.windows.net/' ,variables('name').sa.containerName,'/',variables('name').disk.data,'.vhd')]"
-              },
               "createOption": "Empty"
             }
           ]
@@ -143,8 +137,7 @@
         },
         "diagnosticsProfile": {
           "bootDiagnostics": {
-            "enabled": "false",
-            "storageUri": "[concat('http://', variables('name').sa.name, '.blob.core.windows.net')]"
+            "enabled": "false"
           }
         }
       }

@@ -114,32 +114,8 @@
 
     {
       "type": "Microsoft.Resources/deployments",
-      "name": "StorageAccountSetup",
-      "apiVersion": "[variables('apiVersions').deployments]",
-      "properties": {
-      "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('urls').storageAccount]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "location": {
-            "value": "[variables('location')]"
-          },
-          "storageAccountName": {
-            "value": "[variables('name').sa.name]"
-          }
-        }
-      }
-    },
-
-    {
-      "type": "Microsoft.Resources/deployments",
       "name": "AutomateWorkstation-Deployment",
       "apiVersion": "[variables('apiVersions').deployments]",
-      "dependsOn": [
-        "Microsoft.Resources/deployments/StorageAccountSetup"
-      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
