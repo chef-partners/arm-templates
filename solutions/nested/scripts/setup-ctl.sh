@@ -443,7 +443,7 @@ do
         then
 
           # Set variables based on the cloud platform, if it has been set
-          case $CLOUD_PLATFORM
+          case $CLOUD_PLATFORM in
             aws)
 
               # Build up the Chef Server URL using metadata and the org name as sent in by script options
