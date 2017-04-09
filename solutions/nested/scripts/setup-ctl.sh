@@ -447,9 +447,9 @@ do
             aws)
 
               # Build up the Chef Server URL using metadata and the org name as sent in by script options
-              $AWS_PUBLIC_HOSTNAME=`curl http://169.254.169.254/latest/meta-data/public-hostname`
+              AWS_PUBLIC_HOSTNAME=`curl http://169.254.169.254/latest/meta-data/public-hostname`
 
-              $CHEF_SERVER_URL=$(printf 'https://%s/organizations/%s' $AWS_PUBLIC_HOSTNAME $CHEF_ORGNAME )
+              CHEF_SERVER_URL=$(printf 'https://%s/organizations/%s' $AWS_PUBLIC_HOSTNAME $CHEF_ORGNAME )
             ;;
           esac 
 
