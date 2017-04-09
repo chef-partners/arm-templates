@@ -578,6 +578,18 @@ do
         cmd=$(printf 'curl %s/v2/keys/delivery/user/delivery | jq -r .node.value | base64 -d > delivery.pem' $ORCHESTRATION_SERVER)
         executeCmd $cmd
 
+        # If this is AWS then uncompress the key
+        # This is to work around an issue with the amount of data that can be passed in as a parameter
+        # The key is gzip'd and then base64 encoded
+        # So to get it working it has to be decoded, uncompressed and the decoded again so that it works witht he rest of the code
+        case $CLOUD_PLATFORM in
+          aws)
+
+            # Decompress the license key
+            AUTOMATE_LICENSE_KEY=`echo $AUTOMATE_LICENSE_KEY | base64 -d | gunzip -cf | base64`
+          ;;
+        esac 
+
         # If a license key has been specified as an option then write it out as file
         if [ "X$AUTOMATE_LICENSE_KEY" != "X" ]
         then
