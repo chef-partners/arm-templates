@@ -586,7 +586,7 @@ do
           aws)
 
             # Decompress the license key
-            AUTOMATE_LICENSE_KEY=`echo $AUTOMATE_LICENSE_KEY | base64 -d | gunzip -cf | base64`
+            AUTOMATE_LICENSE_KEY=`echo $AUTOMATE_LICENSE_KEY | base64 -d | gunzip -cf | base64 -w 0`
           ;;
         esac 
 
