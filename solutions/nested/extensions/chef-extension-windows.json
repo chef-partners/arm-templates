@@ -19,6 +19,13 @@
       "metadata": {
         "description": "Object containing all the information to communicate with the chef server"
       }
+    },
+    "chefClientVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of the chef-client to install"
+      },
+      "defaultValue": "12.19.36"
     }
   },
   "resources": [
@@ -32,6 +39,7 @@
         "type": "ChefClient",
         "typeHandlerVersion": "1210.12",
         "settings": {
+          "bootstrap_version": "[parameters('chefClientVersion')]",
           "validation_key_format": "base64encoded",
           "bootstrap_options": {
             "chef_node_name": "[parameters('computerName')]",
