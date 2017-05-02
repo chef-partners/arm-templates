@@ -110,8 +110,7 @@ The default JSON object for the IP addresses is
   "chefserver": "10.0.0.5",
   "automateserver": "10.0.0.6",
   "complianceserver": "10.0.0.7",
-  "buildnodestart": "10.0.0.8"
-}
+  "buildnodestart": "10.0.0.8"}
 ```
 
 A new complete object can be specified in parameters.
@@ -135,7 +134,7 @@ az group create -n "automate-cluster" -l "westeurope"
 az group deployment create --template-uri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/automatecluster.json \
 --parameters @./automatecluster.parameters.local.json \
 -g "automate-cluster"
-=n "automate-deploy-1"
+-n "automate-deploy-1"
 ```
 
 When using the URL for the template file ensure that it points to a public address that Azure can see and if using GitHub it points to the correct branch.
