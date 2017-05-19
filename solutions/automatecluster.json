@@ -12,12 +12,74 @@
 
     "adminUsername": {
       "type": "string",
-      "defaultValue": "azure"
+      "defaultValue": "azure",
+      "metadata": {
+        "description": "Username for the machines when logging in using SSH or RDP"
+      }
     },
 
     "adminPassword": {
-      "type": "securestring"
+      "type": "securestring",
+      "metadata": {
+        "description": "Password to be assigned to the admin user."
+      }
     },
+
+    "automateLicense": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "License for running Chef Automate"
+      }
+    },
+
+    "userName": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for the Chef components"
+      },
+      "defaultValue": ""
+    },
+
+    "userFullname": {
+      "type": "string",
+      "metadata": {
+        "description": "Full name of the user to create"
+      },
+      "defaultValue": ""
+    },
+
+    "userEmailaddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Email address of the chef user"
+      },
+      "defaultValue": ""
+    },
+
+    "userPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the specified Chef user"
+      },
+      "defaultValue": ""
+    },
+
+    "chefOrg": {
+      "type": "string",
+      "metadata": {
+        "description": "Organisation to be created on the Chef server"
+      },
+      "defaultValue": ""
+    },
+
+    "chefOrgDescription": {
+      "type": "string",
+      "metadata": {
+        "description": "Description for the Chef organisation"
+      },
+      "defaultValue": ""
+    },    
 
     "networkVNetSize": {
       "type": "string",
@@ -74,20 +136,12 @@
       }
     },
 
-    "automateLicense": {
-      "type": "securestring",
-      "defaultValue": "",
-      "metadata": {
-
-      }
-    },
-
     "chefVersion": {
       "type": "string",
       "metadata": {
         "description": "Version of chef server to install"
       },
-      "defaultValue": ""
+      "defaultValue": "12.14.0"
     },
 
     "chefDKVersion": {
@@ -95,62 +149,17 @@
       "metadata": {
         "description": "Version of ChefDK to use for the build nodes"
       },
-      "defaultValue": ""
+      "defaultValue": "1.2.22"
     },
 
-    "userName": {
-      "type": "string",
-      "metadata": {
-        "description": "Username or the us"
-      },
-      "defaultValue": ""
-    },
 
-    "userFullname": {
-      "type": "string",
-      "metadata": {
-        "description": "Full name of the user to create"
-      },
-      "defaultValue": ""
-    },
-
-    "userEmailaddress": {
-      "type": "string",
-      "metadata": {
-        "description": "Email address of the chef user"
-      },
-      "defaultValue": ""
-    },
-
-    "userPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Password for the specified Chef user"
-      },
-      "defaultValue": ""
-    },
-
-    "chefOrg": {
-      "type": "string",
-      "metadata": {
-        "description": "Organisation to be created on the Chef server"
-      },
-      "defaultValue": ""
-    },
-
-    "chefOrgDescription": {
-      "type": "string",
-      "metadata": {
-        "description": "Description for the Chef organisation"
-      },
-      "defaultValue": ""
-    },
 
     "chefRepoUrl": {
       "type": "string",
       "metadata": {
         "description": "URL for the repo Zip file"
-      }
+      },
+      "defaultValue": "https://ufmnrk9rhw1k2ftk.blob.core.windows.net/automatefiles/chefrepo.zip"
     },
 
     "automateVersion": {
@@ -158,7 +167,7 @@
       "metadata": {
         "description": "Version of automate server to install"
       },
-      "defaultValue": ""
+      "defaultValue": "0.7.85"
     },
 
     "complianceVersion": {
@@ -166,7 +175,7 @@
       "metadata": {
         "description": "Version of compliance server to install"
       },
-      "defaultValue": ""
+      "defaultValue": "1.8.12"
     },
 
     "buildNodeCount": {
