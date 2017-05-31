@@ -128,20 +128,12 @@
       "defaultValue": 4
     },
 
-    "storageAccountType": {
-      "type": "string",
-      "defaultValue": "Standard_LRS",
-      "metadata": {
-        "description": "The type of storage account to use"
-      }
-    },
-
     "chefVersion": {
       "type": "string",
       "metadata": {
         "description": "Version of chef server to install"
       },
-      "defaultValue": "12.14.0"
+      "defaultValue": "12.15.7"
     },
 
     "chefDKVersion": {
@@ -149,10 +141,8 @@
       "metadata": {
         "description": "Version of ChefDK to use for the build nodes"
       },
-      "defaultValue": "1.2.22"
+      "defaultValue": "1.4.3"
     },
-
-
 
     "chefRepoUrl": {
       "type": "string",
@@ -167,15 +157,7 @@
       "metadata": {
         "description": "Version of automate server to install"
       },
-      "defaultValue": "0.7.85"
-    },
-
-    "complianceVersion": {
-      "type": "string",
-      "metadata": {
-        "description": "Version of compliance server to install"
-      },
-      "defaultValue": "1.8.12"
+      "defaultValue": "0.8.1"
     },
 
     "buildNodeCount": {
@@ -279,8 +261,6 @@
     "uniqueShort": "[substring(variables('unique'), 0, parameters('shortUniqueLength'))]",
     "location": "[resourceGroup().location]",
 
-    "storageAccountType": "[parameters('storageAccountType')]",
-
     "name": {
       "storageAccountName": "[variables('unique')]",
       "virtualNetwork": "[concat(parameters('prefix'), '-', variables('uniqueShort'), '-VNet')]",
@@ -322,12 +302,6 @@
       "chefdkversion": "[parameters('chefDKVersion')]"
     },
 
-    "compliance": {
-      "version": "[parameters('complianceVersion')]",
-      "username": "[parameters('userName')]",
-      "password": "[parameters('userPassword')]"
-    },
-
     "oms": {
       "enable": "[parameters('enableMonitoring')]",
       "baseUrl": "[uri(deployment().properties.templateLink.uri, 'nested/files')]",
@@ -359,7 +333,6 @@
       "orchestrationserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-orchestration.json')]",
       "chefserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-chefserver-scratch.json')]",
       "automateserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-automateserver-scratch.json')]",
-      "complianceserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-complianceserver-scratch.json')]",
       "buildnode": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-buildnode.json')]",
       "workstation": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-windows-workstation.json')]",
       "nsg": {
@@ -644,60 +617,6 @@
 
     {
       "type": "Microsoft.Resources/deployments",
-      "name": "AutomateCluster-ComplianceServer",
-      "apiVersion": "2016-02-01",
-      "dependsOn": [
-        "Microsoft.Resources/deployments/AutomateCluster-ChefServer"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('urls').complianceserver]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "name": {
-            "value": "[variables('name').computer.compliance]"
-          },
-          "adminUsername": {
-            "value": "[parameters('adminUsername')]"
-          },
-          "adminPassword": {
-            "value": "[parameters('adminPassword')]"
-          },
-          "vmSize": {
-            "value": "[parameters('vmSizes').complianceserver]"
-          },          
-          "subnetRef": {
-            "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
-          },
-          "storageAccountName": {
-            "value": "[variables('name').storageAccountName]"
-          },
-          "imageSku": {
-            "value": "16.04.0-LTS"
-          },
-          "complianceServerAttributes": {
-            "value": "[variables('compliance')]"
-          },
-          "ipAddress": {
-            "value": "[parameters('ipAddresses').complianceserver]"
-          },
-          "orchestrationServerIPAddress": {
-            "value": "[parameters('ipAddresses').orchestration]"
-          },
-          "omsAttributes": {
-            "value": "[variables('oms')]"
-          },
-          "autoShutdown": {
-            "value": "[parameters('autoShutdown')]"
-          }
-        }
-      }
-    },
-
-    {
-      "type": "Microsoft.Resources/deployments",
       "name": "AutomateCluster-Workstation",
       "apiVersion": "2016-02-01",
       "dependsOn": [
@@ -802,18 +721,6 @@
     "automateServerUrl": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-AutomateServer').outputs.url.value]"
-    },
-    "complianceServerFQDN": {
-      "type": "string",
-      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-ComplianceServer').outputs.fqdn.value]"
-    },
-    "complianceServerSSH": {
-      "type": "string",
-      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-ComplianceServer').outputs.ssh.value]"
-    },
-    "complianceServerUrl": {
-      "type": "string",
-      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-ComplianceServer').outputs.url.value]"
     },
     "workstationFQDN": {
       "type": "string",
