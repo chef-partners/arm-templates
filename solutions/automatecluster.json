@@ -160,6 +160,19 @@
       "defaultValue": "0.8.1"
     },
 
+    "automateVersionChannel": {
+      "type": "string",
+      "metadata": {
+        "description": "Channel from which to download the package. Can be current, stable or beta. Default: stable"
+      },
+      "defaultValue": "stable",
+      "allowedValues": [
+        "stable",
+        "current",
+        "beta"
+      ]
+    },
+
     "buildNodeCount": {
       "type": "int",
       "metadata": {
@@ -294,6 +307,7 @@
 
     "automate": {
       "version": "[parameters('automateVersion')]",
+      "channel": "[parameters('automateVersionChannel')]",
       "username": "[parameters('userName')]",
       "fullname": "[parameters('userFullname')]",
       "password": "[parameters('userPassword')]",

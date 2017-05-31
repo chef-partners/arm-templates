@@ -33,6 +33,7 @@ CHEF_USER_EMAILADDRESS=""
 # Version of the various software
 CHEF_SERVER_VERSION=""
 AUTOMATE_SERVER_VERSION=""
+AUTOMATE_SERVER_CHANNEL="stable"
 CHEF_PUSHJOBS_VERSION="2.1.0"
 CHEFDK_VERSION=""
 
@@ -280,6 +281,11 @@ do
       AUTOMATE_SERVER_VERSION="$1"
     ;;
 
+    --automate-channel)
+      shift
+      AUTOMATE_SERVER_CHANNEL="$1"
+    ;;
+
     --oms-baseurl)
       shift
       OMS_BASE_URL="$1"
@@ -341,7 +347,7 @@ do
         echo "Checking Automate Server"
 
         # Determine the download path for the chef server
-        download_url=$(printf 'https://packages.chef.io/files/stable/automate/%s/ubuntu/16.04/automate_%s-1_amd64.deb' $AUTOMATE_SERVER_VERSION $AUTOMATE_SERVER_VERSION)
+        download_url=$(printf 'https://packages.chef.io/files/%s/automate/%s/ubuntu/16.04/automate_%s-1_amd64.deb' $AUTOMATE_SERVER_CHANNEL $AUTOMATE_SERVER_VERSION $AUTOMATE_SERVER_VERSION)
 
         install delivery-ctl $download_url 
       fi
