@@ -93,13 +93,6 @@
         "description": "Internal IP address of the orchestration server from which data can be retrieved"
       }
     },
-
-    "omsAttributes": {
-      "type": "secureObject",
-      "metadata": {
-        "description": "Object detailing the workspace id and key to configure OMS on the machine"
-      }
-    },
     
     "autoShutdown": {
       "type": "object",
@@ -127,9 +120,6 @@
       "publicIPAddress": "[concat(parameters('name'), '-PublicIP')]",
       "dns": "[parameters('name')]",
       "computer": "[parameters('name')]",
-      "extension": {
-        "oms": "[concat(parameters('name'), '-OMSExt')]"
-      },
       "sa": {
         "name": "[parameters('storageAccountName')]",
         "containerName": "[parameters('storageAccountContainerName')]"
@@ -155,10 +145,7 @@
       "networkInterface": "[uri(deployment().properties.templateLink.uri, '../network-interface/network-interface-static-publicip.json')]",
       "virtualMachine": "[uri(deployment().properties.templateLink.uri, concat('../virtual-machine/virtual-machine-ubuntu.json'))]",
       "configurationScript": "[uri(deployment().properties.templateLink.uri, concat('../scripts/setup-ctl.sh'))]",
-      "autoShutdown": "[uri(deployment().properties.templateLink.uri, '../auto-shutdown/auto-shutdown.json')]",
-      "extensions": {
-        "oms": "[uri(deployment().properties.templateLink.uri, concat('../monitoring/omsagent-linux-', parameters('omsAttributes').enable, '.json'))]"
-      }
+      "autoShutdown": "[uri(deployment().properties.templateLink.uri, '../auto-shutdown/auto-shutdown.json')]"
     },
 
     "apiVersions": {
@@ -300,36 +287,6 @@
       }
     },
 
-   {
-      "type": "Microsoft.Resources/deployments",
-      "name": "[concat(variables('name').extension.oms, '-Deployment')]",
-      "apiVersion": "[variables('apiVersions').deployments]",
-      "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/', variables('name').vm, '-Deployment')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('urls').extensions.oms]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "location": {
-            "value": "[variables('location')]"
-          },
-          "vmName": {
-            "value": "[variables('name').vm]"
-          },
-          "omsAttributes": {
-            "value": "[parameters('omsAttributes')]"
-          },
-          "serverType": {
-            "value": "automate"
-          }
-        }
-      }
-    },
-
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(variables('name').vm, '/InstallAutomateServer')]",
@@ -346,7 +303,7 @@
           "fileUris": [
             "[variables('urls').configurationScript]"
           ],
-          "commandToExecute": "[concat('./setup-ctl.sh -m automate-install,automate-configure,automate-build-nodes', reference(concat(variables('name').extension.oms, '-Deployment')).outputs.commandMode.value, ' --automate-version \"', variables('automate').version, '\" --automate-channel \"',  variables('automate').channel,'\" -O \"', parameters('orchestrationServerIPAddress'), ':4001\" -L \"', variables('automate').license, '\" -s \"', parameters('chefServerUrl'), '\" -u \"', variables('automate').username,'\" -f \"', variables('automate').fullname, '\" -p \"', variables('automate').password, '\" -e \"', variables('automate').emailaddress, '\" --build-node-prefix \"', parameters('buildNode').nameprefix, '\" --build-node-count ', parameters('buildNode').count, ' --chefdk-version \"', variables('automate').chefdkversion, '\"', reference(concat(variables('name').extension.oms, '-Deployment')).outputs.commandArgument.value)]"
+          "commandToExecute": "[concat('./setup-ctl.sh -m automate-install,automate-configure,automate-build-nodes --automate-version \"', variables('automate').version, '\" --automate-channel \"',  variables('automate').channel,'\" -O \"', parameters('orchestrationServerIPAddress'), ':4001\" -L \"', variables('automate').license, '\" -s \"', parameters('chefServerUrl'), '\" -u \"', variables('automate').username,'\" -f \"', variables('automate').fullname, '\" -p \"', variables('automate').password, '\" -e \"', variables('automate').emailaddress, '\" --build-node-prefix \"', parameters('buildNode').nameprefix, '\" --build-node-count ', parameters('buildNode').count, ' --chefdk-version \"', variables('automate').chefdkversion, '\"')]"
         }
       },
       "location": "[resourceGroup().location]"
