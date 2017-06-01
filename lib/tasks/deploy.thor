@@ -48,20 +48,20 @@ class Deploy < Thor
         # Determine the name of the group to delete
         group_remove_name = format('%s-%s', group, config[group]['count'] - 1)
 
-        cmds << format('azure group delete %s -q --nowait', group_remove_name)
+        cmds << format('az group delete -n %s -y --no-wait', group_remove_name)
       end
     end
 
     # Create the new group
     # Determine the new group name
     group_name = format("%s-%s", group, config[group]['count'])
-    cmds << format('azure group create "%s" "%s"', group_name, options[:location])
+    cmds << format('az group create -n "%s" -l "%s"', group_name, options[:location])
 
     # Work out the command to run the deployment
     deployment_name = format("%s-deploy", group_name)
-    deploy_cmd = format('azure group deployment create --template-uri %s -e %s -g %s -n %s', uri, parameters, group_name, deployment_name)
+    deploy_cmd = format('az group deployment create --template-uri %s --parameters @%s -g %s -n %s', uri, parameters, group_name, deployment_name)
     if options['no-wait']
-      deploy_cmd += "  --nowait"
+      deploy_cmd += "  --no-wait"
     end
     cmds << deploy_cmd
 
@@ -120,7 +120,7 @@ class Deploy < Thor
       # configure the command to run to display the status
       
       deployment_name = format('%s-deploy', resource_group_name)
-      status_cmd = format('azure group deployment show %s %s', resource_group_name, deployment_name)
+      status_cmd = format('az group deployment show -g %s -n %s', resource_group_name, deployment_name)
 
       Open3.popen2e(status_cmd) do |stdin, stdout_err, wait_thr|
           while line = stdout_err.gets
