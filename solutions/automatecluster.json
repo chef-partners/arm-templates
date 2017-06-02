@@ -216,6 +216,18 @@
       ]
     },
 
+    "buildNodesEnabled": {
+      "type": "string",
+      "metadata": {
+        "description": "State if build nodes should be created. Default: yes"
+      },
+      "defaultValue": "yes",
+      "allowedValues": [
+        "yes",
+        "no"
+      ]
+    },
+
     "buildNodeCount": {
       "type": "int",
       "metadata": {
@@ -507,7 +519,7 @@
       "type": "Microsoft.Resources/deployments",
       "name": "[concat('AutomateCluster-BuildNode-', copyIndex(1))]",
       "apiVersion": "2016-02-01",
-      "condition": "[greater(parameters('buildNodeCount'), 0)]",
+      "condition": "[equals(parameters('buildNodesEnabled'), 'yes')]",
       "dependsOn": [
         "Microsoft.Resources/deployments/AutomateCluster-OrchestrationServer"
       ],
