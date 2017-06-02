@@ -161,6 +161,14 @@
         "description": "Size of the Build nodes"
       },
       "defaultValue": "Standard_D1_V2"
+    },
+
+    "vmSizeInfrastructureNode": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the Build nodes"
+      },
+      "defaultValue": "Standard_DS2_V2"
     },    
 
     "shortUniqueLength": {
@@ -235,6 +243,70 @@
       },
       "defaultValue": 1
     },
+
+    "infrastructureNodesEnabled": {
+      "type": "string",
+      "metadata": {
+        "description": "State if infrastructure nodes should be created. Default: no"
+      },
+      "defaultValue": "no",
+      "allowedValues": [
+        "yes",
+        "no"
+      ]      
+    },
+
+    "infrastuctureNodeCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Number of infrastructure nodes to create. Default: 1"
+      },
+      "defaultValue": 1
+    },
+
+    "infrastuctureNodePlatform": {
+      "type": "string",
+      "metadata": {
+        "description": "OS that the node(s) should run. Default: windows"
+      },
+      "defaultValue": "windows",
+      "allowedValues": [
+        "windows",
+        "linux"
+      ]
+    },
+
+    "infrastuctureNodeSKU": {
+      "type": "string",
+      "metadata": {
+        "description": "SKU for the chosen platform"
+      },
+      "defaultValue": "2012-R2-Datacenter"
+    },    
+
+    "infrastuctureNodeRunList": {
+      "type": "string",
+      "metadata": {
+        "description": "Chef run list to apply to the Infrastructure nodes"
+      },
+      "defaultValue": ""
+    },    
+
+    "infrastuctureNodeEnvironment": {
+      "type": "string",
+      "metadata": {
+        "description": "Chef environment that the nodes belong to."
+      },
+      "defaultValue": ""
+    },
+
+    "infrastuctureNodeConfiguration": {
+      "type": "string",
+      "metadata": {
+        "description": "Additional configuration for the chef client on Infrastructure nodes"
+      },
+      "defaultValue": ""
+    },         
 
     "subscriptionPassword": {
       "type": "securestring",
@@ -383,7 +455,17 @@
         "buildnode": "[parameters('vmSizeBuildNode')]",
         "chefserver": "[parameters('vmSizeChefServer')]",
         "automateserver": "[parameters('vmSizeAutomateServer')]",
-        "workstation": "[parameters('vmSizeWorkstation')]"
+        "workstation": "[parameters('vmSizeWorkstation')]",
+        "infrastructurenode": "[parameters('vmSizeInfrastructureNode')]"
+    },
+
+    "infrastructureNodes": {
+      "count": "[parameters('infrastuctureNodeCount')]",
+      "platform": "[parameters('infrastuctureNodePlatform')]",
+      "sku": "[parameters('infrastuctureNodeSKU')]",
+      "runlist": "[parameters('infrastuctureNodeRunList')]",
+      "environment": "[parameters('infrastuctureNodeEnvironment')]",
+      "configuration": "[parameters('infrastuctureNodeConfiguration')]"
     },
 
     "spnDetails": {
@@ -407,6 +489,7 @@
       "chefserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-chefserver-scratch.json')]",
       "automateserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-automateserver-scratch.json')]",
       "buildnode": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-buildnode.json')]",
+      "infranode": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-infranode.json')]",
       "workstation": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-windows-workstation.json')]",
       "nsg": {
         "chefservers": "[uri(deployment().properties.templateLink.uri, 'nested/security-groups/chef-servers.json')]"
@@ -672,6 +755,72 @@
           },
           "orchestrationServerIPAddress": {
             "value": "[variables('ipAddresses').orchestration]"
+          },
+          "autoShutdown": {
+            "value": "[variables('autoShutdown')]"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "Microsoft.Resources/deployments",
+      "name": "AutomateCluster-InfrastructureNodes",
+      "apiVersion": "2016-02-01",
+      "condition": "[equals(parameters('infrastructureNodesEnabled'), 'yes')]",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/AutomateCluster-ChefServer"
+      ],
+      "copy": {
+        "name": "nodeCopy",
+        "count": "[variables('infrastructureNodes').count]"
+      },
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('urls').infranode]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "name": {
+            "value": "[concat(parameters('prefix'), '-', substring(variables('infrastructureNodes').platform, 0, 1), '-', reference('Microsoft.Resources/deployments/AutomateCluster').outputs.shortUnique.value, '-', copyIndex(1))]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "subnetRef": {
+            "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
+          },
+          "storageAccountName": {
+            "value": "[variables('name').storageAccountName]"
+          },
+          "vmSize": {
+            "value": "[variables('vmSizes').infrastructurenode]"
+          },
+          "imageSku": {
+            "value": "[variables('infrastructureNodes').sku]"
+          },
+          "machinePlatform": {
+            "value": "[variables('infrastructureNodes').platform]"
+          },
+          "chefData": {
+            "value": {
+              "serverUrl": "[reference('Microsoft.Resources/deployments/AutomateCluster-ChefServer').outputs.chefServerUrl.value]",
+              "org": "[variables('chef').org]",
+              "validator": {
+                "name": "[concat(variables('chef').org, '-validator')]",
+                "key": "Random string that will be replaced when the subsequent setup script runs"
+              },
+              "node": {
+                "sslVerifyMode": "none",
+                "environment": "[variables('infrastructureNodes').environment]",
+                "configuration": "[variables('infrastructureNodes').configuration]"
+              },
+              "runlist": "[variables('infrastructureNodes').runlist]"
+            }
           },
           "autoShutdown": {
             "value": "[variables('autoShutdown')]"
