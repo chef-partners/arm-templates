@@ -4,85 +4,51 @@
   "parameters": {
 
     "prefix": {
-      // Prefix to be assigned to all machines
       "value": ""
     },
 
     "adminPassword": {
-      // Password to set for the adminUsername
       "value": ""
     },
 
-    "chefVersion": {
-      // Version of Chef server to install
-      "value": "12.11.1"
-    },
-
-    "chefDKVersion": {
-      // Version of ChefDK to install on the Workstation
-      "value": "1.0.3"
+    "automateLicense": {
+      "value": ""
     },
 
     "userName": {
-      // User name for all the Chef components: Chef-Server, Automate and Compliance
+      
       "value": ""
     },
 
     "userFullname": {
-      // Full name of the user for the chef components
+      
       "value": ""
     },
 
     "userEmailaddress": {
-      // Email address of the Chef components user
+      
       "value": ""
     },
 
     "userPassword": {
-      // Password for the Chef components user
+      
       "value": ""
     },
 
     "chefOrg": {
-      // The organisation to create on the Chef Server, this is the shortname
+      
       "value": ""
     },
 
     "chefOrgDescription": {
-      // Description of the Chef organisation
-      "value": ""
-    },
-
-    "complianceVersion": {
-      // Version of compliance to install
-      "value": "1.6.8"
-    },
-
-    "automateVersion": {
-      // Version of Automate to install
-      "value": "0.6.7"
-    },
-
-    "automateLicense": {
-      // Base64 encoded version of the deliveryLicense
+      
       "value": ""
     },
 
     "chefRepoUrl": {
-      // URL to the chefrepo.zip file that contains the cookbooks to configure the workstation
-      // and for the infrastructure node
-      "value": ""
-    },
 
-    "spnDetails": {
-      // Object stating the information required to create the Azure credentials file on the workstation
-      // so that Test-Kitchen can be run on the machine
-      // The subscription ID is passed automatically and does not need to be set here
-      "value": {
-        "clientId": "",
-        "clientSecret": "",
-        "tenantId": ""
-      }
+      "value": ""
     }
+
   }
 }
