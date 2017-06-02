@@ -783,7 +783,7 @@
         },
         "parameters": {
           "name": {
-            "value": "[concat(parameters('prefix'), '-', substring(variables('infrastructureNodes').platform, 0, 1), '-', reference('Microsoft.Resources/deployments/AutomateCluster').outputs.shortUnique.value, '-', copyIndex(1))]"
+            "value": "[concat(parameters('prefix'), '-', substring(variables('infrastructureNodes').platform, 0, 1), '-', variables('uniqueShort'), '-', copyIndex(1))]"
           },
           "adminUsername": {
             "value": "[parameters('adminUsername')]"
