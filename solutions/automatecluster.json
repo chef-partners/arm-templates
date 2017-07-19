@@ -184,7 +184,7 @@
       "metadata": {
         "description": "Version of chef server to install"
       },
-      "defaultValue": "12.15.7"
+      "defaultValue": "12.15.8"
     },
 
     "chefDKVersion": {
@@ -192,7 +192,7 @@
       "metadata": {
         "description": "Version of ChefDK to use for the build nodes"
       },
-      "defaultValue": "1.4.3"
+      "defaultValue": "2.0.28"
     },
 
     "chefRepoUrl": {
@@ -208,7 +208,7 @@
       "metadata": {
         "description": "Version of automate server to install"
       },
-      "defaultValue": "0.8.1"
+      "defaultValue": "1.5.46"
     },
 
     "automateVersionChannel": {
