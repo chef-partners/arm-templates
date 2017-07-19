@@ -863,7 +863,7 @@
             "value": "[variables('name').storageAccountName]"
           },
           "imageSku": {
-            "value": "2012-R2-Datacenter"
+            "value": "2016-Datacenter"
           },
           "chefRepoUrl": {
             "value": "[parameters('chefRepoUrl')]"
