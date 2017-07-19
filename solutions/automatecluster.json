@@ -428,6 +428,10 @@
       "chefdkversion": "[parameters('chefDKVersion')]"
     },
 
+    "workstation": {
+      "chefdkversion": "[parameters('chefDKVersion')]"
+    },
+
     "networks": {
       "vnet": "[parameters('networkVNetSize')]",
       "subnet": "[parameters('networkSubnetSize')]"
@@ -894,6 +898,9 @@
           },
           "automateServerUrl": {
             "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-AutomateServer').outputs.url.value]"
+          },
+          "workstationAttributes": {
+            "value": "[variables('workstation')]"
           }
         }
       }
