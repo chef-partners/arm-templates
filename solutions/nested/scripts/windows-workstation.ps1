@@ -91,31 +91,38 @@ function Unpack {
     $archive
   )
 
-  # open the zip file
-  $zip = [System.IO.Compression.ZipFile]::OpenRead($archive)
+  # Check the version of powershell
+  if ($PSVersionTable.PSVersion.Major -ge 5) {
 
-  foreach ($item in $zip.Entries) {
+    Expand-Archive -Path $archive -DestinationPath $path
+  } else {
+  
+    # open he zip file
+    $zip = [System.IO.Compression.ZipFile]::OpenRead($archive)
 
-    # Determine the path that should be extracted to
-    $itempath = $item.Fullname
+    foreach ($item in $zip.Entries) {
 
-    $itempath = Join-Path -Path $path -ChildPath $itempath
+      # Determine the path that should be extracted to
+      $itempath = $item.Fullname
 
-    # Ensure that the directory exists, use the length of the item to determine if it is a directory
-    if ($item.length -eq 0 -and !(Test-Path -Path $itempath)) {
-        Write-Verbose -Message ("Creating Dir: {0}" -f $itempath)
-        New-Item -type directory -Path $itempath | Out-Null
+      $itempath = Join-Path -Path $path -ChildPath $itempath
+
+      # Ensure that the directory exists, use the length of the item to determine if it is a directory
+      if ($item.length -eq 0 -and !(Test-Path -Path $itempath)) {
+          Write-Verbose -Message ("Creating Dir: {0}" -f $itempath)
+          New-Item -type directory -Path $itempath | Out-Null
+      }
+
+      # Only extract files with content in them
+      # if ($item.length > 0) {
+          try {
+              [System.IO.Compression.ZipFileExtensions]::ExtractToFile($item, $itempath, $true)
+          } catch {
+              $_
+          }
+      #}
+
     }
-
-    # Only extract files with content in them
-    # if ($item.length > 0) {
-        try {
-            [System.IO.Compression.ZipFileExtensions]::ExtractToFile($item, $itempath, $true)
-        } catch {
-            $_
-        }
-    #}
-
   }
 
   # Ensure that the zip item is disposed of, this is to remove the lock on the file
@@ -216,7 +223,7 @@ foreach ($mode in $modes) {
     "chefrepo" {
 
       # Download and unpack the repo from the storage account
-      $target = "C:\Users\Default\{1}" -f $(Split-Path -Leaf -Path $chef_repo_url)
+      $target = "C:\Users\Default\{0}" -f $(Split-Path -Leaf -Path $chef_repo_url)
 
       # Use the .NET Webclient to download the file
       $wc = New-Object System.Net.WebClient
