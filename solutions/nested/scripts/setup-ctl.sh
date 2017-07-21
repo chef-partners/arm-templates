@@ -32,8 +32,8 @@ CHEF_USER_EMAILADDRESS=""
 
 # Version of the various software
 CHEF_SERVER_VERSION=""
-COMPLIANCE_SERVER_VERSION=""
 AUTOMATE_SERVER_VERSION=""
+AUTOMATE_SERVER_CHANNEL="stable"
 CHEF_PUSHJOBS_VERSION="2.1.0"
 CHEFDK_VERSION=""
 
@@ -276,14 +276,14 @@ do
       CHEFDK_VERSION="$1"
     ;;
 
-    --compliance-version)
-      shift
-      COMPLIANCE_SERVER_VERSION="$1"
-    ;;
-
     --automate-version)
       shift
       AUTOMATE_SERVER_VERSION="$1"
+    ;;
+
+    --automate-channel)
+      shift
+      AUTOMATE_SERVER_CHANNEL="$1"
     ;;
 
     --oms-baseurl)
@@ -340,19 +340,6 @@ do
 
     ;;
 
-    compliance-install)
-
-      if [ "X$COMPLIANCE_SERVER_VERSION" != "X" ]
-      then
-        echo "Checking Compliance Server"
-
-        # Determine the download path for the chef server
-        download_url=$(printf 'https://packages.chef.io/stable/ubuntu/16.04/chef-compliance_%s-1_amd64.deb' $COMPLIANCE_SERVER_VERSION)
-
-        install compliance-server-ctl $download_url 
-      fi
-    ;;
-
     automate-install)
 
       if [ "X$AUTOMATE_SERVER_VERSION" != "X" ]
@@ -360,7 +347,7 @@ do
         echo "Checking Automate Server"
 
         # Determine the download path for the chef server
-        download_url=$(printf 'https://packages.chef.io/files/stable/automate/%s/ubuntu/16.04/automate_%s-1_amd64.deb' $AUTOMATE_SERVER_VERSION $AUTOMATE_SERVER_VERSION)
+        download_url=$(printf 'https://packages.chef.io/files/%s/automate/%s/ubuntu/16.04/automate_%s-1_amd64.deb' $AUTOMATE_SERVER_CHANNEL $AUTOMATE_SERVER_VERSION $AUTOMATE_SERVER_VERSION)
 
         install delivery-ctl $download_url 
       fi
@@ -487,35 +474,6 @@ do
           cmd=$(printf 'curl %s/v2/keys/delivery/user/delivery -XPUT -d value="`cat delivery.pem | base64`"' $ORCHESTRATION_SERVER)
           executeCmd $cmd
 
-          # Create a new user and an SSH key for the user so that the compliance server can SSH and set the OIDC_CLIENT_ID
-          # User
-          cmd=$(useradd -d /home/compliance -m compliance)
-          executeCmd $cmd
-
-          cmd=$(usermod -G sudo -a compliance)
-          executeCmd $cmd
-
-          # Ensure that the compliance user is able to get to root without a password
-          cmd="echo compliance ALL=\(ALL\) NOPASSWD:ALL > /etc/sudoers.d/91-automate-cluster-setup"
-          executeCmd $cmd
-
-          # SSH key
-          cmd=$(mkdir -p /home/compliance/.ssh && ssh-keygen -b 4096 -N '' -f /home/compliance/.ssh/id_rsa)
-          executeCmd $cmd
-
-          cmd=$(cat /home/compliance/.ssh/id_rsa.pub > /home/compliance/.ssh/authorized_keys)
-          executeCmd $cmd
-
-          cmd=$(chown -R compliance:compliance /home/compliance)
-          executeCmd $cmd
-
-          cmd=$(chmod 600 /home/compliance/.ssh/authorized_keys)
-          executeCmd $cmd
-
-          # Add the RSA key to the orchestration server
-          cmd=$(printf 'curl %s/v2/keys/compliance/sshkey -XPUT -d value="`cat /home/compliance/.ssh/id_rsa | base64`"' $ORCHESTRATION_SERVER)
-          executeCmd $cmd
-
           # Download the push jobs package so that it can be added to the installation
           download_url=$(printf 'https://packages.chef.io/stable/ubuntu/16.04/opscode-push-jobs-server_%s-1_amd64.deb' $CHEF_PUSHJOBS_VERSION)
           executeCmd "wget $download_url"
@@ -616,90 +574,6 @@ do
       
     ;;
 
-    compliance-configure)
-
-      # Reconfigure chef-compliance and accept the license key
-      cmd="chef-compliance-ctl reconfigure --accept-license"
-      executeCmd $cmd
-
-      # Create the user and set the password for the software
-      cmd=$(printf 'chef-compliance-ctl user-create %s %s' $CHEF_USER_NAME $CHEF_USER_PASSWORD)
-      executeCmd $cmd
-
-      # Restart compliance for the new user
-      executeCmd "chef-compliance-ctl restart"
-
-      if [ "X$ORCHESTRATION_SERVER" != "X" ]
-      then
-
-        # Ensure that jq is installed so that it is possible to get the keys from the JSON from the orchestration server
-        if [ ! -f /usr/bin/jq ]
-        then
-          executeCmd "apt-get install jq -y"
-        fi
-
-        # Add the url for the compliance server
-        cmd=$(printf 'curl %s/v2/keys/compliance/url -XPUT -d value="https://%s"' $ORCHESTRATION_SERVER `hostname -f`)
-        executeCmd $cmd
-
-        chef_fqdn=`curl $ORCHESTRATION_SERVER/v2/keys/servers/chef/fqdn | jq -r .node.value`
-
-        # Download the SSHkey from the orchestration server so that the server can copy the OIDC_CLIENT_ID to the right file
-        cmd=$(mkdir ~/.ssh)
-        executeCmd $cmd
-
-        cmd=$(printf 'curl %s/v2/keys/compliance/sshkey | jq -r .node.value | base64 -d > /root/.ssh/chef_server_key' $ORCHESTRATION_SERVER)
-        executeCmd $cmd
-
-        # Set the permissions for the key
-        cmd="chmod 0600 /root/.ssh/chef_server_key"
-        executeCmd $cmd
-
-        # Build the command to connect compliance to the chef server
-        cmd=$(printf 'chef-compliance-ctl connect chef-server --non-interactive true --chef-app-id "compliance_server" --auth-id "Chef Server" --insecure true --compliance-url "https://%s" > compliance.out' `hostname -f`)
-        executeCmd $cmd
-
-        # Reconfigure the compliance server
-        cmd="chef-compliance-ctl reconfigure"
-        executeCmd $cmd
-
-        # Restart the core service
-        cmd="chef-compliance-ctl restart core"
-        executeCmd $cmd
-
-        # Wait for compliance to come up properly before installing chef-gate on the chef server
-        sleep 45
-
-        # Extract the command that needs to be run on the chef server from the compliance.out file
-        `cat compliance.out | grep 'CHEF_APP_ID' > chef_gate.sh`
-
-        # write the command out to a file so it can be copied to the remote machine
-        cmd=$(printf 'scp -oStrictHostKeyChecking=no -i /root/.ssh/chef_server_key ./chef_gate.sh compliance@%s:chef_gate.sh' $chef_fqdn)
-        executeCmd $cmd
-
-        # Use SSH to run this command on the chef server
-        # This will save the output from the command to a file which will be interrogated to get the command to run
-        cmd=$(printf 'ssh -oStrictHostKeyChecking=no -i /root/.ssh/chef_server_key -t -t compliance@%s sudo bash ./chef_gate.sh > chef.out' $chef_fqdn)
-        executeCmd $cmd
-
-        # Extract the command that has been returned from the chef command and ensure that the chef server is a URL with an FQDN
-        # BY default the generated command uses the short name of the chef server which does not work in the redirects
-        
-        `cat chef.out | grep "^chef-compliance-ctl" | sed -E 's#https://([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])#https://'$chef_fqdn'#' > compliance.sh`
-        executeCmd 'bash compliance.sh'
-
-        # Reconfigure the compliance server
-        cmd="chef-compliance-ctl reconfigure"
-        executeCmd $cmd
-
-        # Sleep again and then restart the chef server
-        sleep 45        
-        cmd=$(printf 'ssh -oStrictHostKeyChecking=no -i /root/.ssh/chef_server_key -t -t compliance@%s sudo chef-server-ctl restart > chef.out' $chef_fqdn)
-        executeCmd $cmd
-
-      fi
-    ;;
-
     build-node)
 
       # Ensure that jq is installed so that it is possible to get the keys from the JSON from the orchestration server
@@ -715,7 +589,7 @@ do
       cmd=$(usermod -G sudo -a build)
       executeCmd $cmd
 
-      # Ensure that the compliance user is able to get to root without a password
+      # Ensure that the build user is able to get to root without a password
       cmd="echo build ALL=\(ALL\) NOPASSWD:ALL > /etc/sudoers.d/91-automate-build-user"
       executeCmd $cmd
 

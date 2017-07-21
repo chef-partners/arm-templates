@@ -12,65 +12,16 @@
 
     "adminUsername": {
       "type": "string",
-      "defaultValue": "azure"
+      "defaultValue": "azure",
+      "metadata": {
+        "description": "Username for the machines when logging in using SSH or RDP"
+      }
     },
 
     "adminPassword": {
-      "type": "securestring"
-    },
-
-    "networkVNetSize": {
-      "type": "string",
-      "defaultValue": "10.0.0.0/24"
-    },
-
-    "networkSubnetSize": {
-      "type": "string",
-      "defaultValue": "10.0.0.0/28"
-    },
-
-    "ipAddresses": {
-      "type": "object",
+      "type": "securestring",
       "metadata": {
-        "description": "Object of static internal IP addresses to be assigned to machines"
-      },
-      "defaultValue": {
-        "orchestration": "10.0.0.4",
-        "chefserver": "10.0.0.5",
-        "automateserver": "10.0.0.6",
-        "complianceserver": "10.0.0.7",
-        "buildnodestart": "10.0.0.8"
-      }
-    },
-
-    "vmSizes": {
-      "type": "object",
-      "metadata": {
-        "description": "Object stating the size of the machines that are to be created in this cluster"
-      },
-      "defaultValue": {
-        "orchestration": "Standard_D1_V2",
-        "buildnode": "Standard_D1_V2",
-        "chefserver": "Standard_DS2_V2",
-        "automateserver": "Standard_DS2_V2",
-        "complianceserver": "Standard_DS2_V2",
-        "workstation": "Standard_DS2_V2"
-      }
-    },
-
-    "shortUniqueLength": {
-      "type": "int",
-      "metadata": {
-        "description": "The number of the characters to use for the short unique string"
-      },
-      "defaultValue": 4
-    },
-
-    "storageAccountType": {
-      "type": "string",
-      "defaultValue": "Standard_LRS",
-      "metadata": {
-        "description": "The type of storage account to use"
+        "description": "Password to be assigned to the admin user."
       }
     },
 
@@ -78,30 +29,14 @@
       "type": "securestring",
       "defaultValue": "",
       "metadata": {
-
+        "description": "License for running Chef Automate"
       }
-    },
-
-    "chefVersion": {
-      "type": "string",
-      "metadata": {
-        "description": "Version of chef server to install"
-      },
-      "defaultValue": ""
-    },
-
-    "chefDKVersion": {
-      "type": "string",
-      "metadata": {
-        "description": "Version of ChefDK to use for the build nodes"
-      },
-      "defaultValue": ""
     },
 
     "userName": {
       "type": "string",
       "metadata": {
-        "description": "Username or the us"
+        "description": "Username for the Chef components"
       },
       "defaultValue": ""
     },
@@ -144,13 +79,128 @@
         "description": "Description for the Chef organisation"
       },
       "defaultValue": ""
+    },    
+
+    "networkVNetSize": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/24"
+    },
+
+    "networkSubnetSize": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/28"
+    },
+
+    "ipAddressOrchestrationServer": {
+      "type": "string",
+      "metadata": {
+        "description": "IP address of the orchestration server"
+      },
+      "defaultValue": "10.0.0.4"
+    },
+
+    "ipAddressChefServer": {
+      "type": "string",
+      "metadata": {
+        "description": "IP address of the Chef server"
+      },
+      "defaultValue": "10.0.0.5"
+    },
+
+    "ipAddressAutomateServer": {
+      "type": "string",
+      "metadata": {
+        "description": "IP address of the Automate server"
+      },
+      "defaultValue": "10.0.0.6"
+    },
+
+    "ipAddressBuildNodeStart": {
+      "type": "string",
+      "metadata": {
+        "description": "Starting IP address for the build nodes"
+      },
+      "defaultValue": "10.0.0.8"
+    },
+
+    "vmSizeOrchestrationServer": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the Orchestration server"
+      },
+      "defaultValue": "Standard_D1_V2"
+    },
+
+    "vmSizeChefServer": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the Chef server"
+      },
+      "defaultValue": "Standard_DS2_V2"
+    },
+
+    "vmSizeAutomateServer": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the Automate server"
+      },
+      "defaultValue": "Standard_DS2_V2"
+    },    
+
+    "vmSizeWorkstation": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the Workstation machine"
+      },
+      "defaultValue": "Standard_DS2_V2"
+    },
+
+    "vmSizeBuildNode": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the Build nodes"
+      },
+      "defaultValue": "Standard_D1_V2"
+    },
+
+    "vmSizeInfrastructureNode": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the Build nodes"
+      },
+      "defaultValue": "Standard_DS2_V2"
+    },    
+
+    "shortUniqueLength": {
+      "type": "int",
+      "metadata": {
+        "description": "The number of the characters to use for the short unique string"
+      },
+      "defaultValue": 4
+    },
+
+    "chefVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of chef server to install"
+      },
+      "defaultValue": "12.15.8"
+    },
+
+    "chefDKVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Version of ChefDK to use for the build nodes"
+      },
+      "defaultValue": "1.5.0"
     },
 
     "chefRepoUrl": {
       "type": "string",
       "metadata": {
         "description": "URL for the repo Zip file"
-      }
+      },
+      "defaultValue": "https://ufmnrk9rhw1k2ftk.blob.core.windows.net/automatefiles/chefrepo.zip"
     },
 
     "automateVersion": {
@@ -158,15 +208,32 @@
       "metadata": {
         "description": "Version of automate server to install"
       },
-      "defaultValue": ""
+      "defaultValue": "1.5.46"
     },
 
-    "complianceVersion": {
+    "automateVersionChannel": {
       "type": "string",
       "metadata": {
-        "description": "Version of compliance server to install"
+        "description": "Channel from which to download the package. Can be current, stable or beta. Default: stable"
       },
-      "defaultValue": ""
+      "defaultValue": "stable",
+      "allowedValues": [
+        "stable",
+        "current",
+        "beta"
+      ]
+    },
+
+    "buildNodesEnabled": {
+      "type": "string",
+      "metadata": {
+        "description": "State if build nodes should be created. Default: yes"
+      },
+      "defaultValue": "yes",
+      "allowedValues": [
+        "yes",
+        "no"
+      ]
     },
 
     "buildNodeCount": {
@@ -177,41 +244,69 @@
       "defaultValue": 1
     },
 
-    "enableMonitoring": {
+    "infrastructureNodesEnabled": {
       "type": "string",
       "metadata": {
-        "description": "State whether to enable OMS monoitoring on the Automate Cluster.  Default: No"
+        "description": "State if infrastructure nodes should be created. Default: no"
       },
       "defaultValue": "no",
       "allowedValues": [
         "yes",
         "no"
+      ]      
+    },
+
+    "infrastuctureNodeCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Number of infrastructure nodes to create. Default: 1"
+      },
+      "defaultValue": 1
+    },
+
+    "infrastuctureNodePlatform": {
+      "type": "string",
+      "metadata": {
+        "description": "OS that the node(s) should run. Default: windows"
+      },
+      "defaultValue": "windows",
+      "allowedValues": [
+        "windows",
+        "linux"
       ]
     },
 
-    "omsWorkspaceId": {
+    "infrastuctureNodeSKU": {
       "type": "string",
       "metadata": {
-        "description": "ID of the OMS workspace to write logs to"
+        "description": "SKU for the chosen platform"
+      },
+      "defaultValue": "2012-R2-Datacenter"
+    },    
+
+    "infrastuctureNodeRunList": {
+      "type": "string",
+      "metadata": {
+        "description": "Chef run list to apply to the Infrastructure nodes"
+      },
+      "defaultValue": ""
+    },    
+
+    "infrastuctureNodeEnvironment": {
+      "type": "string",
+      "metadata": {
+        "description": "Chef environment that the nodes belong to."
       },
       "defaultValue": ""
     },
 
-    "omsWorkspaceName": {
+    "infrastuctureNodeConfiguration": {
       "type": "string",
       "metadata": {
-        "description": "Name of the workspace"
+        "description": "Additional configuration for the chef client on Infrastructure nodes"
       },
       "defaultValue": ""
-    },
-
-    "omsResourceGroup": {
-      "type": "string",
-      "metadata": {
-        "description": "Resource Group that the OMS workspace is attached to"
-      },
-      "defaultValue": "[resourceGroup().name]"
-    },
+    },         
 
     "subscriptionPassword": {
       "type": "securestring",
@@ -229,31 +324,52 @@
       "defaultValue": ""
     },
 
-    "spnDetails": {
-      "type": "secureObject",
+    "spnDetailsClientId": {
+      "type": "string",
       "metadata": {
-        "description": "Object containing the SPN information that should be used for Test Kitchen"
+        "description": "Client ID of the SPN for Test Kitchen to use"
       },
-      "defaultValue": {
-        "clientId": "",
-        "clientSecret": "",
-        "tenantId": ""
-      }
+      "defaultValue": ""
     },
 
-    "autoShutdown": {
-      "type": "object",
+    "spnDetailsClientSecret": {
+      "type": "securestring",
       "metadata": {
-        "description": "Object specifying if Auto shutdown should be configured"
+        "description": "Password associated with the Client ID of the SPN"
       },
-      "defaultValue": {
+      "defaultValue": ""
+    },
 
-        "shutdown": {
-          "status": "Disabled",
-          "timezone": "UTC",
-          "time": "1900"
-        }
-      }
+    "spnDetailsTenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "Tenant ID of the SPN for Test Kitchen to use"
+      },
+      "defaultValue": ""
+    },
+
+    "autoShutdownStatus": {
+      "type": "string",
+      "metadata": {
+        "description": "State if auto shutdown should be enabled. Default: Disabled"
+      },
+      "defaultValue": "Disabled"
+    },
+
+    "autoShutdownTimezone": {
+      "type": "string",
+      "metadata": {
+        "description": "Timezone that the schedule should run in"
+      },
+      "defaultValue": "UTC"
+    },
+
+    "autoShutdownTime": {
+      "type": "string",
+      "metadata": {
+        "description": "Time that autoshutdown should occur if enabled. Default: 1900"
+      },
+      "defaultValue": "1900"
     },
 
     "unique": {
@@ -269,8 +385,6 @@
     "unique": "[parameters('unique')]",
     "uniqueShort": "[substring(variables('unique'), 0, parameters('shortUniqueLength'))]",
     "location": "[resourceGroup().location]",
-
-    "storageAccountType": "[parameters('storageAccountType')]",
 
     "name": {
       "storageAccountName": "[variables('unique')]",
@@ -305,6 +419,7 @@
 
     "automate": {
       "version": "[parameters('automateVersion')]",
+      "channel": "[parameters('automateVersionChannel')]",
       "username": "[parameters('userName')]",
       "fullname": "[parameters('userFullname')]",
       "password": "[parameters('userPassword')]",
@@ -313,20 +428,8 @@
       "chefdkversion": "[parameters('chefDKVersion')]"
     },
 
-    "compliance": {
-      "version": "[parameters('complianceVersion')]",
-      "username": "[parameters('userName')]",
-      "password": "[parameters('userPassword')]"
-    },
-
-    "oms": {
-      "enable": "[parameters('enableMonitoring')]",
-      "baseUrl": "[uri(deployment().properties.templateLink.uri, 'nested/files')]",
-      "workspace": {
-        "id": "[parameters('omsWorkspaceId')]",
-        "name": "[parameters('omsWorkspaceName')]"
-      },
-      "resourceGroupName": "[parameters('omsResourceGroup')]"
+    "workstation": {
+      "chefdkversion": "[parameters('chefDKVersion')]"
     },
 
     "networks": {
@@ -334,7 +437,14 @@
       "subnet": "[parameters('networkSubnetSize')]"
     },
 
-    "buildNodeAddressSegments": "[split(parameters('ipAddresses').buildnodestart, '.')]",
+    "ipaddresses": {
+        "orchestration": "[parameters('ipAddressOrchestrationServer')]",
+        "chefserver": "[parameters('ipAddressChefServer')]",
+        "automateserver": "[parameters('ipAddressAutomateServer')]",
+        "buildnodestart": "[parameters('ipAddressBuildNodeStart')]"
+    },
+
+    "buildNodeAddressSegments": "[split(variables('ipAddresses').buildnodestart, '.')]",
     "buildNode": {
       "nameprefix": "[variables('name').computer.buildnode]",
       "count": "[parameters('buildNodeCount')]",
@@ -344,14 +454,46 @@
       }
     },
 
+    "vmSizes": {
+        "orchestration": "[parameters('vmSizeOrchestrationServer')]",
+        "buildnode": "[parameters('vmSizeBuildNode')]",
+        "chefserver": "[parameters('vmSizeChefServer')]",
+        "automateserver": "[parameters('vmSizeAutomateServer')]",
+        "workstation": "[parameters('vmSizeWorkstation')]",
+        "infrastructurenode": "[parameters('vmSizeInfrastructureNode')]"
+    },
+
+    "infrastructureNodes": {
+      "count": "[parameters('infrastuctureNodeCount')]",
+      "platform": "[parameters('infrastuctureNodePlatform')]",
+      "sku": "[parameters('infrastuctureNodeSKU')]",
+      "runlist": "[parameters('infrastuctureNodeRunList')]",
+      "environment": "[parameters('infrastuctureNodeEnvironment')]",
+      "configuration": "[parameters('infrastuctureNodeConfiguration')]"
+    },
+
+    "spnDetails": {
+        "clientId": "[parameters('spnDetailsClientId')]",
+        "clientSecret": "[parameters('spnDetailsClientSecret')]",
+        "tenantId": "[parameters('spnDetailsTenantId')]"
+    },
+
+    "autoShutdown": {
+      "shutdown": {
+          "status": "[parameters('autoShutdownStatus')]",
+          "timezone": "[parameters('autoShutdownTimezone')]",
+          "time": "[parameters('autoShutdownTime')]"
+        }
+    },
+
     "urls": {
       "storageAccount": "[uri(deployment().properties.templateLink.uri, 'nested/storage-account/storage-account.json')]",
       "vnet": "[uri(deployment().properties.templateLink.uri, 'nested/virtual-network/vnet-nsg.json')]",
       "orchestrationserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-orchestration.json')]",
       "chefserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-chefserver-scratch.json')]",
       "automateserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-automateserver-scratch.json')]",
-      "complianceserver": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-complianceserver-scratch.json')]",
       "buildnode": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-buildnode.json')]",
+      "infranode": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-infranode.json')]",
       "workstation": "[uri(deployment().properties.templateLink.uri, 'nested/wrappers/vm-publicip-windows-workstation.json')]",
       "nsg": {
         "chefservers": "[uri(deployment().properties.templateLink.uri, 'nested/security-groups/chef-servers.json')]"
@@ -433,7 +575,7 @@
             "value": "[variables('name').computer.orchestrationserver]"
           },
           "vmSize": {
-            "value": "[parameters('vmSizes').orchestration]"
+            "value": "[variables('vmSizes').orchestration]"
           },
           "adminUsername": {
             "value": "[parameters('adminUsername')]"
@@ -451,10 +593,10 @@
             "value": "16.04.0-LTS"
           },
           "ipAddress": {
-            "value": "[parameters('ipAddresses').orchestration]"
+            "value": "[variables('ipAddresses').orchestration]"
           },
           "autoShutdown": {
-            "value": "[parameters('autoShutdown')]"
+            "value": "[variables('autoShutdown')]"
           }
         }
       }
@@ -464,6 +606,7 @@
       "type": "Microsoft.Resources/deployments",
       "name": "[concat('AutomateCluster-BuildNode-', copyIndex(1))]",
       "apiVersion": "2016-02-01",
+      "condition": "[equals(parameters('buildNodesEnabled'), 'yes')]",
       "dependsOn": [
         "Microsoft.Resources/deployments/AutomateCluster-OrchestrationServer"
       ],
@@ -488,7 +631,7 @@
             "value": "[parameters('adminPassword')]"
           },
           "vmSize": {
-            "value": "[parameters('vmSizes').buildnode]"
+            "value": "[variables('vmSizes').buildnode]"
           },
           "subnetRef": {
             "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
@@ -506,13 +649,10 @@
             "value": "[concat(variables('buildNode').ip.base, '.', copyIndex(int(variables('buildNode').ip.offset)))]"
           },
           "orchestrationServerIPAddress": {
-            "value": "[parameters('ipAddresses').orchestration]"
-          },
-          "omsAttributes": {
-            "value": "[variables('oms')]"
+            "value": "[variables('ipAddresses').orchestration]"
           },
           "autoShutdown": {
-            "value": "[parameters('autoShutdown')]"
+            "value": "[variables('autoShutdown')]"
           }
         }
       }
@@ -542,7 +682,7 @@
             "value": "[parameters('adminPassword')]"
           },
           "vmSize": {
-            "value": "[parameters('vmSizes').chefserver]"
+            "value": "[variables('vmSizes').chefserver]"
           },
           "subnetRef": {
             "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
@@ -557,16 +697,13 @@
             "value": "[variables('chef')]"
           },
           "ipAddress": {
-            "value": "[parameters('ipAddresses').chefserver]"
+            "value": "[variables('ipAddresses').chefserver]"
           },
           "orchestrationServerIPAddress": {
-            "value": "[parameters('ipAddresses').orchestration]"
-          },
-          "omsAttributes": {
-            "value": "[variables('oms')]"
+            "value": "[variables('ipAddresses').orchestration]"
           },
           "autoShutdown": {
-            "value": "[parameters('autoShutdown')]"
+            "value": "[variables('autoShutdown')]"
           }
         }
       }
@@ -597,7 +734,7 @@
             "value": "[parameters('adminPassword')]"
           },
           "vmSize": {
-            "value": "[parameters('vmSizes').automateserver]"
+            "value": "[variables('vmSizes').automateserver]"
           },
           "subnetRef": {
             "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
@@ -615,19 +752,16 @@
             "value": "[concat('https://', reference('Microsoft.Resources/deployments/AutomateCluster-ChefServer').outputs.fqdn.value, '/organizations/delivery')]"
           },
           "ipAddress": {
-            "value": "[parameters('ipAddresses').automateserver]"
+            "value": "[variables('ipAddresses').automateserver]"
           },
           "buildNode": {
             "value": "[variables('buildNode')]"
           },
           "orchestrationServerIPAddress": {
-            "value": "[parameters('ipAddresses').orchestration]"
-          },
-          "omsAttributes": {
-            "value": "[variables('oms')]"
+            "value": "[variables('ipAddresses').orchestration]"
           },
           "autoShutdown": {
-            "value": "[parameters('autoShutdown')]"
+            "value": "[variables('autoShutdown')]"
           }
         }
       }
@@ -635,20 +769,25 @@
 
     {
       "type": "Microsoft.Resources/deployments",
-      "name": "AutomateCluster-ComplianceServer",
+      "name": "AutomateCluster-InfrastructureNodes",
       "apiVersion": "2016-02-01",
+      "condition": "[equals(parameters('infrastructureNodesEnabled'), 'yes')]",
       "dependsOn": [
         "Microsoft.Resources/deployments/AutomateCluster-ChefServer"
       ],
+      "copy": {
+        "name": "nodeCopy",
+        "count": "[variables('infrastructureNodes').count]"
+      },
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[variables('urls').complianceserver]",
+          "uri": "[variables('urls').infranode]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "name": {
-            "value": "[variables('name').computer.compliance]"
+            "value": "[concat(parameters('prefix'), '-', substring(variables('infrastructureNodes').platform, 0, 1), '-', variables('uniqueShort'), '-', copyIndex(1))]"
           },
           "adminUsername": {
             "value": "[parameters('adminUsername')]"
@@ -656,32 +795,39 @@
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
           },
-          "vmSize": {
-            "value": "[parameters('vmSizes').complianceserver]"
-          },          
           "subnetRef": {
-            "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
+            "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
           },
           "storageAccountName": {
             "value": "[variables('name').storageAccountName]"
           },
+          "vmSize": {
+            "value": "[variables('vmSizes').infrastructurenode]"
+          },
           "imageSku": {
-            "value": "16.04.0-LTS"
+            "value": "[variables('infrastructureNodes').sku]"
           },
-          "complianceServerAttributes": {
-            "value": "[variables('compliance')]"
+          "machinePlatform": {
+            "value": "[variables('infrastructureNodes').platform]"
           },
-          "ipAddress": {
-            "value": "[parameters('ipAddresses').complianceserver]"
-          },
-          "orchestrationServerIPAddress": {
-            "value": "[parameters('ipAddresses').orchestration]"
-          },
-          "omsAttributes": {
-            "value": "[variables('oms')]"
+          "chefData": {
+            "value": {
+              "serverUrl": "[reference('Microsoft.Resources/deployments/AutomateCluster-ChefServer').outputs.chefServerUrl.value]",
+              "org": "[variables('chef').org]",
+              "validator": {
+                "name": "[concat(variables('chef').org, '-validator')]",
+                "key": "Random string that will be replaced when the subsequent setup script runs"
+              },
+              "node": {
+                "sslVerifyMode": "none",
+                "environment": "[variables('infrastructureNodes').environment]",
+                "configuration": "[variables('infrastructureNodes').configuration]"
+              },
+              "runlist": "[variables('infrastructureNodes').runlist]"
+            }
           },
           "autoShutdown": {
-            "value": "[parameters('autoShutdown')]"
+            "value": "[variables('autoShutdown')]"
           }
         }
       }
@@ -712,7 +858,7 @@
             "value": "[parameters('adminPassword')]"
           },
           "vmSize": {
-            "value": "[parameters('vmSizes').workstation]"
+            "value": "[variables('vmSizes').workstation]"
           },
           "subnetRef": {
             "value": "[reference('AutomateCluster-VirtualNetwork').outputs.subnetRef.value]"
@@ -721,7 +867,7 @@
             "value": "[variables('name').storageAccountName]"
           },
           "imageSku": {
-            "value": "2012-R2-Datacenter"
+            "value": "2016-Datacenter"
           },
           "chefRepoUrl": {
             "value": "[parameters('chefRepoUrl')]"
@@ -742,16 +888,19 @@
             "value": "[parameters('subscriptionUsername')]"
           },
           "spnDetails": {
-            "value": "[parameters('spnDetails')]"
+            "value": "[variables('spnDetails')]"
           },
           "autoShutdown": {
-            "value": "[parameters('autoShutdown')]"
+            "value": "[variables('autoShutdown')]"
           },
           "automateServerFQDN": {
             "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-AutomateServer').outputs.fqdn.value]"
           },
           "automateServerUrl": {
             "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-AutomateServer').outputs.url.value]"
+          },
+          "workstationAttributes": {
+            "value": "[variables('workstation')]"
           }
         }
       }
@@ -793,18 +942,6 @@
     "automateServerUrl": {
       "type": "string",
       "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-AutomateServer').outputs.url.value]"
-    },
-    "complianceServerFQDN": {
-      "type": "string",
-      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-ComplianceServer').outputs.fqdn.value]"
-    },
-    "complianceServerSSH": {
-      "type": "string",
-      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-ComplianceServer').outputs.ssh.value]"
-    },
-    "complianceServerUrl": {
-      "type": "string",
-      "value": "[reference('Microsoft.Resources/deployments/AutomateCluster-ComplianceServer').outputs.url.value]"
     },
     "workstationFQDN": {
       "type": "string",

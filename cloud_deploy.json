@@ -1,0 +1,17 @@
+[
+    {
+        "file": "solutions/automatecluster.json",
+        "name": "Chef Automate Environment",
+        "description": "Create Chef Automate environment"
+    },
+    {
+        "file": "solutions/automatecluster-infranodes.json",
+        "name": "Chef Automate Environment with Infranodes",
+        "description": "Create Chef Automate environment with infrastructure nodes" 
+    },
+    {
+        "file": "solutions/automate-workstation.json",
+        "name": "Chef Automate Workstation",
+        "description": "Add Windows workstation to existing Chef Automate Environment"
+    }
+]
