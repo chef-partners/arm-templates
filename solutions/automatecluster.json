@@ -192,7 +192,7 @@
       "metadata": {
         "description": "Version of ChefDK to use for the build nodes"
       },
-      "defaultValue": "2.0.28"
+      "defaultValue": "1.5.0"
     },
 
     "chefRepoUrl": {
