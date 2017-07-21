@@ -27,7 +27,6 @@
 
     "automateLicense": {
       "type": "securestring",
-      "defaultValue": "",
       "metadata": {
         "description": "License for running Chef Automate"
       }
@@ -37,48 +36,42 @@
       "type": "string",
       "metadata": {
         "description": "Username for the Chef components"
-      },
-      "defaultValue": ""
+      }
     },
 
     "userFullname": {
       "type": "string",
       "metadata": {
         "description": "Full name of the user to create"
-      },
-      "defaultValue": ""
+      }
     },
 
     "userEmailaddress": {
       "type": "string",
       "metadata": {
         "description": "Email address of the chef user"
-      },
-      "defaultValue": ""
+      }
     },
 
     "userPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Password for the specified Chef user"
-      },
-      "defaultValue": ""
+      }
     },
 
     "chefOrg": {
       "type": "string",
       "metadata": {
         "description": "Organisation to be created on the Chef server"
-      },
-      "defaultValue": ""
+      }
     },
 
     "chefOrgDescription": {
       "type": "string",
       "metadata": {
         "description": "Description for the Chef organisation"
-      },
-      "defaultValue": ""
+      }
     },    
 
     "networkVNetSize": {
