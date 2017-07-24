@@ -256,7 +256,7 @@ Deployment of the nodes is performed in the same way as all the other templates 
 
 ```bash
 az group deployment create --template-uri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/chef-nodes.json \
---parameters @./chef-nodes.parameters.json \
+--parameters ./chef-nodes.parameters.json \
 -g "automate-cluster" \
 -n "automate-deploy-1"
 ```
