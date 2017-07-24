@@ -132,7 +132,7 @@ The following shows an example of the commands to use to create the Resource Gro
 ```bash
 az group create -n "automate-cluster" -l "westeurope"
 az group deployment create --template-uri https://raw.githubusercontent.com/chef-partners/arm-templates/master/solutions/automatecluster.json \
---parameters @./automatecluster.parameters.local.json \
+--parameters ./automatecluster.parameters.local.json \
 -g "automate-cluster"
 -n "automate-deploy-1"
 ```
