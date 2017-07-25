@@ -457,6 +457,10 @@ do
           cmd=$(echo data_collector[\'token\']=\"`cat data_token`\" >> $CHEF_SERVER_FILE)
           executeCmd $cmd
 
+          # Add the url for the compliance profiles
+          cmd=$(echo profiles[\'root_url\'] = \"https://`hostname -f | sed 's/chef/automate/'`\" >> $CHEF_SERVER_FILE)
+          executeCmd $cmd
+
           # Upload the validation key for the org if it is not delivery
           if [ "$CHEF_ORGNAME" != "delivery" ]
           then
