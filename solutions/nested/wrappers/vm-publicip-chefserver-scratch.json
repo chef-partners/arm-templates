@@ -293,7 +293,7 @@
           "fileUris": [
             "[variables('urls').configurationScript]"
           ],
-          "commandToExecute": "[concat('./setup-ctl.sh -m chef-install,chef-configure  --chef-version \"', variables('chef').version, '\" -u \"', variables('chef').username,'\" -f \"', variables('chef').fullname, '\" -p \"', variables('chef').password, '\" -e \"', variables('chef').emailaddress, '\" -o \"', variables('chef').org, '\" -d \"', variables('chef').orgdescription, '\" -s https://', reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value, '/organizations/', variables('chef').org, ' -O \"', parameters('orchestrationServerIPAddress'), ':4001\" -w')]"
+          "commandToExecute": "[concat('./setup-ctl.sh -m chef-install,chef-configure  --chef-version \"', variables('chef').version, '\" -u \"', variables('chef').username,'\" -f \"', variables('chef').fullname, '\" -p \"', variables('chef').password, '\" -e \"', variables('chef').emailaddress, '\" -o \"', variables('chef').org, '\" -d \"', variables('chef').orgdescription, '\" -s https://', reference(concat(variables('name').publicIPAddress, '-Deployment')).outputs.fqdn.value, '/organizations/', variables('chef').org, ' -O \"', parameters('orchestrationServerIPAddress'), ':4001\" --max-request-size \"', variables('chef').maxrequestsize, '\" -w')]"
         }
       },
       "location": "[resourceGroup().location]"

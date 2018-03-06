@@ -47,7 +47,9 @@ ORCHESTRATION_SERVER=""
 AUTOMATE_LICENSE_KEY=""
 AUTOMATE_LICENSE_KEY_PATH=""
 
+# Chef server configuration
 CHEF_SERVER_URL=""
+MAX_REQUEST_SIZE="2000000"
 
 CHEF_OMS_CONFIG_FILE="omsagent-chef-server.conf"
 AUTOMATE_OMS_CONFIG_FILE="omsagent-automate-server.conf"
@@ -306,6 +308,11 @@ do
       LOCATION=$1
     ;;
 
+    --max-request-size)
+      shift
+      MAX_REQUEST_SIZE="$1"
+    ;;
+
     -D|--dryrun)
       DRY_RUN=1
     ;;
@@ -484,6 +491,10 @@ do
 
           # Install the chef jobs application
           cmd=$(printf 'chef-server-ctl install opscode-push-jobs-server --path $PWD/%s' `basename $download_url`)
+          executeCmd $cmd
+
+          # Set the Max request size for sending CIS Profile data to automate through Chef server
+          cmd=$(echo opscode_erchef[\'max_request_size\'] = \"$MAX_REQUEST_SIZE\" >> $CHEF_SERVER_FILE)
           executeCmd $cmd
 
           executeCmd "chef-server-ctl reconfigure"

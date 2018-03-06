@@ -299,7 +299,15 @@
         "description": "Additional configuration for the chef client on Infrastructure nodes"
       },
       "defaultValue": ""
-    },         
+    },
+
+    "chefMaxRequestSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Maximum request size for relaying CIS profile data through to the Automate server"
+      },
+      "defaultValue": "2000000"
+    },
 
     "subscriptionPassword": {
       "type": "securestring",
@@ -407,7 +415,8 @@
       "password": "[parameters('userPassword')]",
       "emailaddress": "[parameters('userEmailaddress')]",
       "org": "[toLower(parameters('chefOrg'))]",
-      "orgdescription": "[parameters('chefOrgDescription')]"
+      "orgdescription": "[parameters('chefOrgDescription')]",
+      "maxrequestsize": "[parameters('chefMaxRequestSize')]"
     },
 
     "automate": {
