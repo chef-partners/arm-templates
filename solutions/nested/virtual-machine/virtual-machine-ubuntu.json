@@ -171,6 +171,7 @@
           },
           "osDisk": {
             "name": "[variables('name').disk.os]",
+            "diskSizeGB": "100",
             "caching": "ReadOnly",
             "createOption": "FromImage"
           },
