@@ -138,6 +138,7 @@
       "type": "Microsoft.Resources/deployments",
       "name": "[concat(parameters('prefix'), '-LinuxNodes-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
+      "condition": "[greater(parameters('linuxMachineCount'), 0)]",
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -201,6 +202,10 @@
       "type": "Microsoft.Resources/deployments",
       "name": "[concat(parameters('prefix'), '-WindowsNodes-Deployment')]",
       "apiVersion": "[variables('apiVersions').deployments]",
+      "condition": "[greater(parameters('windowsMachineCount'), 0)]",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments', parameters('prefix'), '-LinuxNodes-Deployment')]"
+      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
