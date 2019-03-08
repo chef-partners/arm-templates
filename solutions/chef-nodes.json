@@ -204,7 +204,7 @@
       "apiVersion": "[variables('apiVersions').deployments]",
       "condition": "[greater(parameters('windowsMachineCount'), 0)]",
       "dependsOn": [
-        "[concat('Microsoft.Resources/deployments', parameters('prefix'), '-LinuxNodes-Deployment')]"
+        "[concat('Microsoft.Resources/deployments/', parameters('prefix'), '-LinuxNodes-Deployment')]"
       ],
       "properties": {
         "mode": "Incremental",
